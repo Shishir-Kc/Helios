@@ -1,0 +1,242 @@
+/* Application Layout Styles (SAGEA specific layout) */
+
+.app-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
+
+/* Sections Base */
+section {
+  padding: var(--space-20) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+section:last-of-type {
+  border-bottom: none;
+}
+
+/* Typography Overrides / Helpers for layout */
+.section-label {
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-brand-blue);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: var(--space-4);
+}
+
+.section-desc {
+  max-width: 600px;
+  color: var(--color-medium-gray);
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-14);
+}
+
+/* Hero Section */
+.hero-section {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  padding: var(--space-24) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  right: -20%;
+  bottom: -20%;
+  background: 
+    radial-gradient(circle at 85% 15%, rgba(20, 71, 230, 0.3) 0%, transparent 40%),
+    radial-gradient(circle at 15% 85%, rgba(220, 210, 0, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(0, 187, 127, 0.25) 0%, transparent 60%);
+  z-index: -1;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.hero-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 800px;
+}
+
+.hero-eyebrow {
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-brand-blue);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: var(--space-6);
+}
+
+.hero-title {
+  margin-bottom: var(--space-6);
+}
+
+.hero-sub {
+  color: var(--color-medium-gray);
+  margin-bottom: var(--space-8);
+}
+
+.hero-desc {
+  color: var(--color-medium-gray);
+  margin-bottom: var(--space-10);
+  max-width: 500px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-4);
+}
+
+/* Models Grid */
+.models-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-8);
+}
+
+.model-family {
+  font-size: 14px;
+  color: var(--color-medium-gray);
+  margin-bottom: var(--space-6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.model-desc {
+  margin-bottom: var(--space-8);
+  opacity: 0.8;
+}
+
+.card-standard .model-desc {
+  color: var(--color-medium-gray);
+}
+
+/* Philosophy Section */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-14) var(--space-8);
+  margin-top: var(--space-14);
+}
+
+.feature-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background-color: var(--color-surface-tertiary);
+  color: var(--color-brand-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-6);
+}
+
+.feature-title {
+  margin-bottom: var(--space-3);
+}
+
+.feature-item .body-small {
+  color: var(--color-medium-gray);
+}
+
+/* CTA Section */
+.cta-section {
+  background-color: var(--color-surface-tertiary);
+  text-align: center;
+  padding: var(--space-24) 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  right: -20%;
+  bottom: -20%;
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(20, 71, 230, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(220, 210, 0, 0.2) 0%, transparent 60%),
+    radial-gradient(circle at 50% 50%, rgba(0, 187, 127, 0.2) 0%, transparent 50%);
+  z-index: 0;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.cta-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.cta-title {
+  margin-bottom: var(--space-6);
+}
+
+.cta-sub {
+  color: var(--color-medium-gray);
+  margin-bottom: var(--space-10);
+  max-width: 600px;
+}
+
+.cta-actions {
+  display: flex;
+  gap: var(--space-4);
+}
+
+/* Responsive Overrides */
+@media (max-width: 1023px) {
+  .h1, h1 {
+    font-size: 80px;
+    line-height: 88px;
+  }
+}
+
+@media (max-width: 767px) {
+  section {
+    padding: var(--space-10) 0;
+  }
+  
+  .h1, h1 {
+    font-size: 60px;
+    line-height: 68px;
+  }
+  
+  .h2, h2 {
+    font-size: 32px;
+    line-height: 40px;
+  }
+  
+  .hero-actions, .cta-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .hero-actions .btn, .cta-actions .btn {
+    width: 100%;
+  }
+
+  .models-grid, .features-grid {
+    grid-template-columns: 1fr;
+  }
+}

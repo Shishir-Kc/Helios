@@ -1,0 +1,39 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 12px;
+  font-family: var(--font-family);
+}
+
+/* Success Badge */
+.badge-success {
+  background-color: var(--color-success);
+  color: var(--color-pure-white);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Warning Badge */
+.badge-warning {
+  background-color: var(--color-warning-orange);
+  color: var(--color-pure-white);
+  /* Fallback weight if not explicitly specified, usually same as success */
+  font-weight: var(--font-weight-medium);
+}
+
+/* Error Badge */
+.badge-error {
+  background-color: var(--color-error);
+  color: var(--color-pure-white);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Neutral Badge */
+.badge-neutral {
+  background-color: var(--color-surface-secondary);
+  color: var(--color-pure-black);
+  border: 1px solid var(--color-border-subtle);
+  font-weight: var(--font-weight-regular);
+}
