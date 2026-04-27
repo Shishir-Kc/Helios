@@ -43,7 +43,10 @@ function App() {
 
             <div className="models-grid">
               <Card variant="feature">
-                {/* <Badge variant="success" style={{ marginBottom: '24px' }}>Live</Badge> */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                  <Badge variant="neutral" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>8B Params</Badge>
+                  <Badge variant="neutral" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>128k Context</Badge>
+                </div>
                 <h3 className="h3">Aurora</h3>
                 <div className="model-family">Helios Gen I</div>
                 <p className="body-small model-desc">
@@ -55,7 +58,9 @@ function App() {
               </Card>
 
               <Card variant="standard">
-                {/* <Badge variant="neutral" style={{ marginBottom: '24px' }}>Coming soon</Badge> */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                  <Badge variant="neutral">In Research</Badge>
+                </div>
                 <h3 className="h3">???</h3>
                 <div className="model-family">Helios Gen II</div>
                 <p className="body-small model-desc">
