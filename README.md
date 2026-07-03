@@ -80,6 +80,7 @@ npm run preview
 
 # lint
 npm run lint
+npm run preview
 ```
 
 ## Components API
