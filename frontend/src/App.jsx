@@ -30,36 +30,21 @@ function HomePage() {
 
       <section className="models-section">
         <div className="container">
-          <div className="section-label">Model Families</div>
-          <h2 className="h2 section-title">Meet the families</h2>
+          <div className="section-label">Traditional ML</div>
+          <h2 className="h2 section-title">Traditional ML models</h2>
           <p className="body-small section-desc">
-            Each Helios family is a distinct line of fine-tuned models, built for a specific purpose and personality. Running entirely on local hardware.
+            A new line of classic machine learning models is in the works, built and trained entirely on local hardware.
           </p>
 
           <div className="models-grid">
             <Card variant="feature">
               <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                <Badge variant="neutral" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>8B Params</Badge>
-                <Badge variant="neutral" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>128k Context</Badge>
+                <Badge variant="neutral" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>Coming Soon</Badge>
               </div>
-              <h3 className="h3">Aurora</h3>
-              <div className="model-family">Helios Gen I</div>
+              <h3 className="h3">Traditional ML Models</h3>
+              <div className="model-family">Helios</div>
               <p className="body-small model-desc">
-                A warm, conversational general-purpose assistant. Aurora is crafted for natural dialogue, thoughtful reasoning, and everyday tasks, the first light of the Helios family.
-              </p>
-              <div className="model-base caption">
-                Base: <strong>Gemma 3</strong> · Fine-tuned locally
-              </div>
-            </Card>
-
-            <Card variant="standard">
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                <Badge variant="neutral">In Research</Badge>
-              </div>
-              <h3 className="h3">???</h3>
-              <div className="model-family">Helios Gen II</div>
-              <p className="body-small model-desc">
-                The next Helios family is in early research. Each new family explores a different dimension, from specialized coding to creative generation.
+                Traditional machine learning models are on the way — uploading soon.
               </p>
               <div className="model-base caption">
                 Details <strong>TBA</strong>
