@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { setToken } from '../api.js'
+import { setToken, verifyKey } from '../api.js'
 
 export default function Login() {
   const [key, setKey] = useState('')
@@ -21,12 +21,10 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const res = await fetch(`/api/helios/papers`, {
-        headers: { Authorization: `Bearer ${trimmed}` },
-      })
+      const valid = await verifyKey(trimmed)
 
-      if (res.status === 401) {
-        setError('Invalid API key')
+      if (!valid) {
+        setError('Back off — you are not part of Kartabya.')
         return
       }
 

@@ -16,6 +16,13 @@ export function isAuthenticated() {
   return !!getToken()
 }
 
+export async function verifyKey(token) {
+  const res = await fetch(`${BASE}/helios/verify`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  return res.ok
+}
+
 async function request(path, options = {}) {
   const token = getToken()
   const headers = { ...options.headers }

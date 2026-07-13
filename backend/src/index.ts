@@ -29,6 +29,10 @@ app.use('/api/*', async (c, next) => {
   c.res.headers.set('Referrer-Policy', 'no-referrer')
 })
 
+app.get('/api/helios/verify', adminAuth, (c) => {
+  return c.json({ ok: true })
+})
+
 app.get('/api/helios/papers', async (c) => {
   try {
     const category = c.req.query('category')
