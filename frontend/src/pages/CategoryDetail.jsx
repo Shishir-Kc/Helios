@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './Papers.css'
 
-const API = import.meta.env.VITE_API_URL ?? '/api'
+const API = import.meta.env.VITE_API_URL ?? 'https://api.helios.shishirkhatri.com.np/api'
 
 const CATEGORY_LABELS = {
   papers: 'Papers',

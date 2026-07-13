@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import './Papers.css'
 
-const API = import.meta.env.VITE_API_URL ?? '/api'
+const API = import.meta.env.VITE_API_URL ?? 'https://api.helios.shishirkhatri.com.np/api'
 
 const CATEGORY_META = {
   papers: {
