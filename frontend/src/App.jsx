@@ -30,10 +30,10 @@ function HomePage() {
 
       <section className="models-section">
         <div className="container">
-          <div className="section-label">Traditional ML</div>
-          <h2 className="h2 section-title">Traditional ML models</h2>
+          <div className="section-label">Models</div>
+          <h2 className="h2 section-title">Models coming soon</h2>
           <p className="body-small section-desc">
-            A new line of classic machine learning models is in the works, built and trained entirely on local hardware.
+            New models are in the works, built and trained entirely on local hardware.
           </p>
 
           <div className="models-grid">
@@ -41,10 +41,10 @@ function HomePage() {
               <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
                 <Badge variant="neutral" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' }}>Coming Soon</Badge>
               </div>
-              <h3 className="h3">Traditional ML Models</h3>
+              <h3 className="h3">Models Coming Soon</h3>
               <div className="model-family">Helios</div>
               <p className="body-small model-desc">
-                Traditional machine learning models are on the way — uploading soon.
+                New models are on the way — uploading soon.
               </p>
               <div className="model-base caption">
                 Details <strong>TBA</strong>
