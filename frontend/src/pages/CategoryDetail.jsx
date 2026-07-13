@@ -4,6 +4,8 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './Papers.css'
 
+const API = import.meta.env.VITE_API_URL ?? '/api'
+
 const CATEGORY_LABELS = {
   papers: 'Papers',
   research: 'Research',
@@ -148,7 +150,7 @@ export function CategoryDetail() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetch(`/api/helios/papers/${slug}`)
+    fetch(`${API}/helios/papers/${slug}`)
       .then((res) => {
         if (!res.ok) {
           if (res.status === 404) throw new Error('Not found')

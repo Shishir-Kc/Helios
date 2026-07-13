@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import './Papers.css'
 
+const API = import.meta.env.VITE_API_URL ?? '/api'
+
 const CATEGORY_META = {
   papers: {
     label: 'Papers',
@@ -27,7 +29,7 @@ export function CategoryList({ category }) {
   const meta = CATEGORY_META[category]
 
   useEffect(() => {
-    fetch(`/api/helios/papers?category=${category}`)
+    fetch(`${API}/helios/papers?category=${category}`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to fetch')
         return res.json()
