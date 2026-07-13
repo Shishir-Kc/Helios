@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "helios-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-13",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "helios-db",
+      "database_id": "85451268-a925-495b-b122-29d10ab1d26e",
+      "migrations_dir": "./migrations"
+    }
+  ]
+}
