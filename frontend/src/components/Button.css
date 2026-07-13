@@ -1,0 +1,94 @@
+.btn {
+  font-family: var(--font-family);
+  font-size: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  min-width: 44px;
+}
+
+.btn:disabled {
+  pointer-events: none;
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: var(--color-brand-blue);
+  color: var(--color-pure-white);
+  padding: 12px 32px;
+  font-weight: var(--font-weight-medium);
+  border-radius: 4px;
+  border: none;
+  height: 44px;
+}
+.btn-primary:hover {
+  background-color: var(--color-light-blue);
+}
+.btn-primary:active {
+  background-color: var(--color-deep-ocean);
+  box-shadow: inset 0px 2px 4px rgba(0,0,0,0.2);
+}
+.btn-primary:disabled {
+  background-color: var(--color-light-gray);
+  color: var(--color-medium-gray);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background-color: var(--color-pure-white);
+  color: var(--color-pure-black);
+  padding: 12px 32px;
+  font-weight: var(--font-weight-medium);
+  border-radius: 4px;
+  border: 1px solid var(--color-dark-charcoal);
+  height: 44px;
+}
+.btn-secondary:hover {
+  background-color: var(--color-lighter-gray);
+  border-color: var(--color-dark-charcoal);
+}
+.btn-secondary:active {
+  background-color: var(--color-off-white);
+  border-color: var(--color-pure-black);
+}
+
+/* Ghost Button */
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-pure-black);
+  padding: 8px 16px;
+  font-weight: var(--font-weight-regular);
+  border-radius: 0px;
+  border: none;
+  height: auto;
+}
+.btn-ghost:hover {
+  color: var(--color-brand-blue);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+.btn-ghost:active {
+  color: var(--color-light-blue);
+}
+
+/* Tertiary Button (Navigation) */
+.btn-tertiary {
+  background-color: transparent;
+  color: var(--color-pure-black);
+  padding: 8px 0px;
+  font-weight: var(--font-weight-regular);
+  border-radius: 0px;
+  border: none;
+  height: 36px;
+  border-bottom: 2px solid transparent;
+}
+.btn-tertiary:hover {
+  color: var(--color-brand-blue);
+  border-bottom: 2px solid var(--color-brand-blue);
+}
+.btn-tertiary:active {
+  color: var(--color-light-blue);
+  border-bottom: 2px solid var(--color-light-blue);
+}
