@@ -1,0 +1,1 @@
+ALTER TABLE papers ADD COLUMN category TEXT NOT NULL DEFAULT 'papers';
