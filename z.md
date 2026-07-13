@@ -147,7 +147,7 @@ npm install -D wrangler typescript @cloudflare/workers-types
 ### Auth (auth.ts)
 - Middleware that checks `Authorization: Bearer <token>` header
 - Token validated against `env.ADMIN_API_KEY`
-- Used for all admin CRUD operations
+- Used for all admin CRUD operations and the `GET /api/helios/verify` login check
 
 ### D1 Database (helios-db)
 - **Database ID:** `85451268-a925-495b-b122-29d10ab1d26e`
@@ -177,6 +177,7 @@ ALTER TABLE papers ADD COLUMN category TEXT NOT NULL DEFAULT 'papers';
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
+| `GET` | `/api/helios/verify` | Bearer token | Verify admin key. Returns `{ ok: true }` (200) or `401` |
 | `GET` | `/api/helios/papers` | No | List all papers. Optional `?category=` filter |
 | `GET` | `/api/helios/papers/:slug` | No | Get single paper by slug |
 | `POST` | `/api/helios/papers` | Bearer token | Create paper (requires: title, description, slug, content, category) |
@@ -341,6 +342,18 @@ cd backend && npx tsc --noEmit
   - Message: "Something might be going on behind the scenes — please wait a few weeks or months..."
 - Frontend rebuilt and redeployed to Pages
 
+### Phase 9 — Studio Auth Bypass Fix
+- **Bug:** Studio `Login.jsx` verified the API key against the public `GET /api/helios/papers` endpoint, which never returns 401. Any key (or a bot hitting a random API then Sign in) gained access to the studio UI, though actual uploads failed with 401.
+- Added protected `GET /api/helios/verify` endpoint (guarded by `adminAuth`) — returns `200` only for the correct key, `401` otherwise
+- Added `verifyKey(token)` helper to `studio/src/api.js` (uses `VITE_API_URL` base, works in dev + prod)
+- `Login.jsx` now grants access only when `verifyKey` succeeds; invalid keys are rejected with: "Back off — you are not part of Kartabya."
+- Backend Worker + Studio redeployed
+
+### Phase 10 — Homepage Models Section
+- Replaced the two model-family cards (Aurora / Helios Gen I and ??? / Helios Gen II) in the HomePage "Model Families" section with a single "Coming Soon" placeholder card
+- Section copy changed to generic "Models coming soon" (no model families / traditional ML wording)
+- Frontend rebuilt and redeployed to Pages
+
 ---
 
 ## 5. Common Admin Tasks
@@ -408,7 +421,7 @@ cd studio && npm run dev
 | `/papers/:slug/edit` | `PaperForm` | Edit existing paper |
 
 ### Features
-- **Auth:** Bearer token stored in `sessionStorage`, verified on login via a test API call
+- **Auth:** Bearer token stored in `sessionStorage`, verified on login against the protected `GET /api/helios/verify` endpoint (`verifyKey` in `api.js`); invalid keys are rejected and never granted access
 - **Dashboard:** Sortable table, delete confirmation dialog
 - **PaperForm:** Auto-slug from title (lockable), category selector, split-pane markdown editor with live preview
 - **API Client:** `api.js` wraps all endpoints, attaches Bearer header, handles 401 redirect
