@@ -102,12 +102,12 @@ Active link detection is based on `location.pathname` prefix matching.
 - **"Read the Docs"** — navigates to `/docs`
 
 ### Category List (CategoryList.jsx)
-- Fetches `GET /api/helios/papers?category={category}`
+- Fetches `GET /api/helios/papers?category={category}` via `VITE_API_URL` env var (defaults to production URL)
 - Displays paper cards with title, description, and date
 - Each card links to `/{category}/{slug}`
 
 ### Category Detail (CategoryDetail.jsx)
-- Fetches `GET /api/helios/papers/{slug}`
+- Fetches `GET /api/helios/papers/{slug}` via `VITE_API_URL` env var
 - Renders markdown content using `react-markdown` + `remark-gfm`
 - Shows category badge, title, description, date
 - "Back to {Category}" link dynamically navigates to the correct category page
@@ -142,7 +142,7 @@ npm install -D wrangler typescript @cloudflare/workers-types
 - Worker name: `helios-api`
 - Compatibility date: `2026-07-13`
 - D1 binding: `DB` → `helios-db`
-- Environment variable: `ADMIN_API_KEY`
+- `ADMIN_API_KEY` is NOT in `vars` — must be set via `.dev.vars` (local) or `wrangler secret put ADMIN_API_KEY` (production)
 
 ### Auth (auth.ts)
 - Middleware that checks `Authorization: Bearer <token>` header
@@ -223,12 +223,23 @@ npx wrangler d1 migrations apply helios-db --remote
 npx wrangler d1 execute helios-db --local --command "SELECT * FROM papers"
 npx wrangler d1 execute helios-db --remote --file ./seed.sql
 
-# Set production secret
+# Set production secret (after Worker is deployed)
 npx wrangler secret put ADMIN_API_KEY
 
 # Deploy worker
 npm run deploy
+
+# Deploy frontend to Pages
+cd frontend && npm run build && npx wrangler pages deploy dist --project-name helios
+
+# Deploy studio to Pages
+cd studio && npm run build && npx wrangler pages deploy dist --project-name helios-studio
 ```
+
+### Production URLs
+- **Backend API:** `https://api.helios.shishirkhatri.com.np`
+- **Frontend:** `https://helios.shishirkhatri.com.np` (Cloudflare Pages)
+- **Studio:** (deploy separately or locally)
 
 ---
 
@@ -294,7 +305,20 @@ cd backend && npx tsc --noEmit
 - Updated Header with active link detection
 - Refactored Header logo to use `<Link>`
 
-### Phase 5 — Categories System
+### Phase 6 — Security Audit & Hardening
+- Removed `ADMIN_API_KEY` from `wrangler.jsonc` `vars` (was set to `""`, allowing auth bypass with empty Bearer token)
+- Fixed Studio `Login.jsx` to store token only after successful API verification (was storing before check)
+- Added **CSP (Content Security Policy)** meta tags to both `frontend/index.html` and `studio/index.html`
+  - `connect-src` includes `'self'`, Google Fonts, and `https://api.helios.shishirkhatri.com.np`
+- Added security headers middleware to backend: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`
+
+### Phase 7 — Production Deployment
+- Backend Worker deployed at `api.helios.shishirkhatri.com.np` with custom domain route
+- D1 migrations applied to remote database, seeded with 5 demo records
+- Admin secret set via `wrangler secret put ADMIN_API_KEY`
+- Frontend deployed to Cloudflare Pages (`helios` project) with preview URL
+- Frontend API URL changed from relative `/api` to `VITE_API_URL` env var with production default
+- CSP `connect-src` initially blocked API fetches (missing `api.helios.shishirkhatri.com.np`) — fixed
 - Migration 0002: Added `category` column to `papers` table
 - Valid values: `research`, `docs`, `papers`
 - Refactored `PapersList` -> `CategoryList` (reusable, takes `category` prop)
@@ -351,7 +375,8 @@ cd studio && npm run dev
 
 - Vite proxy forwards `/api` to `http://localhost:8787`
 - Login with the local admin key: `helios-admin-dev-key`
-- **Production:** Deploy to Cloudflare Pages, set `VITE_API_URL` to the Worker URL
+- **Production:** Deploy to Cloudflare Pages, set `VITE_API_URL` to the Worker URL in Dashboard
+- Studio API client defaults to production URL, overridable via `VITE_API_URL`
 
 ## 6. Studio (Admin CMS)
 
@@ -375,4 +400,5 @@ cd studio && npm run dev
 - **Dashboard:** Sortable table, delete confirmation dialog
 - **PaperForm:** Auto-slug from title (lockable), category selector, split-pane markdown editor with live preview
 - **API Client:** `api.js` wraps all endpoints, attaches Bearer header, handles 401 redirect
-- **Deployment:** Cloudflare Pages; set `VITE_API_URL` env var to Worker URL in production
+- **API URL:** `import.meta.env.VITE_API_URL ?? 'https://api.helios.shishirkhatri.com.np/api'`
+- **Deployment:** Cloudflare Pages; set `VITE_API_URL` env var in Dashboard if overriding
