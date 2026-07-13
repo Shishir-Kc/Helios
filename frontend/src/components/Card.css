@@ -1,0 +1,48 @@
+.card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Standard Card */
+.card-standard {
+  background-color: var(--color-pure-white);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: var(--shadow-raised);
+}
+
+.card-standard:hover {
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Feature Card */
+.card-feature {
+  background: linear-gradient(135deg, #104E64, #009588, #1447E6);
+  border: none;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: var(--shadow-modal);
+  color: var(--color-pure-white);
+}
+
+.card-feature::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, rgba(20,71,230,0) 0%, rgba(16,78,100,0.4) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card-feature > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Feature Card variants based on context */
+.card-feature.gradient-alt {
+  background: linear-gradient(135deg, #F05100, #AC4BFF, #1447E6);
+}
