@@ -75,9 +75,15 @@ export function CategoryList({ category }) {
       <section>
         <div className="container">
           {items.length === 0 ? (
-            <p className="body-small" style={{ color: 'var(--color-medium-gray)' }}>
-              No {meta.label.toLowerCase()} published yet.
-            </p>
+            <div>
+              <p className="body-small" style={{ color: 'var(--color-medium-gray)' }}>
+                No {meta.label.toLowerCase()} have been released here yet.
+              </p>
+              <p className="body-small" style={{ color: 'var(--color-medium-gray)', marginTop: '0.5rem' }}>
+                Something might be going on behind the scenes — please wait a few weeks or months for new
+                {' '}{meta.label.toLowerCase()} to be published. It all depends on the developer.
+              </p>
+            </div>
           ) : (
             <div className="papers-grid">
               {items.map((item) => (

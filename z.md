@@ -237,9 +237,9 @@ cd studio && npm run build && npx wrangler pages deploy dist --project-name heli
 ```
 
 ### Production URLs
-- **Backend API:** `https://api.helios.shishirkhatri.com.np`
+- **Backend API:** `https://api.helios.shishirkhatri.com.np` (Workers + custom domain)
 - **Frontend:** `https://helios.shishirkhatri.com.np` (Cloudflare Pages)
-- **Studio:** (deploy separately or locally)
+- **Studio:** `https://7723e449.helios-studio-1wi.pages.dev` (Cloudflare Pages, preview URL)
 
 ---
 
@@ -305,6 +305,17 @@ cd backend && npx tsc --noEmit
 - Updated Header with active link detection
 - Refactored Header logo to use `<Link>`
 
+### Phase 5 — Categories System
+- Migration 0002: Added `category` column to `papers` table
+- Valid values: `research`, `docs`, `papers`
+- Refactored `PapersList` -> `CategoryList` (reusable, takes `category` prop)
+- Refactored `PaperDetail` -> `CategoryDetail` (reads category from URL path)
+- Category badge displayed on detail pages
+- "Back to" link dynamically navigates to correct category list
+- Header nav links for Research and Docs are now live `<Link>` components
+- Added routes: `/research`, `/docs`, `/research/:slug`, `/docs/:slug`
+- Seed data added for all three categories
+
 ### Phase 6 — Security Audit & Hardening
 - Removed `ADMIN_API_KEY` from `wrangler.jsonc` `vars` (was set to `""`, allowing auth bypass with empty Bearer token)
 - Fixed Studio `Login.jsx` to store token only after successful API verification (was storing before check)
@@ -319,15 +330,10 @@ cd backend && npx tsc --noEmit
 - Frontend deployed to Cloudflare Pages (`helios` project) with preview URL
 - Frontend API URL changed from relative `/api` to `VITE_API_URL` env var with production default
 - CSP `connect-src` initially blocked API fetches (missing `api.helios.shishirkhatri.com.np`) — fixed
-- Migration 0002: Added `category` column to `papers` table
-- Valid values: `research`, `docs`, `papers`
-- Refactored `PapersList` -> `CategoryList` (reusable, takes `category` prop)
-- Refactored `PaperDetail` -> `CategoryDetail` (reads category from URL path)
-- Category badge displayed on detail pages
-- "Back to" link dynamically navigates to correct category list
-- Header nav links for Research and Docs are now live `<Link>` components
-- Added routes: `/research`, `/docs`, `/research/:slug`, `/docs/:slug`
-- Seed data added for all three categories
+- Backend custom domain: `api.helios.shishirkhatri.com.np`
+- Frontend custom domain: `helios.shishirkhatri.com.np`
+- Studio deployed to Cloudflare Pages (`helios-studio` project) at preview URL
+- Studio `api.js` default URL updated to production (`https://api.helios.shishirkhatri.com.np/api`)
 
 ---
 
@@ -375,8 +381,8 @@ cd studio && npm run dev
 
 - Vite proxy forwards `/api` to `http://localhost:8787`
 - Login with the local admin key: `helios-admin-dev-key`
-- **Production:** Deploy to Cloudflare Pages, set `VITE_API_URL` to the Worker URL in Dashboard
-- Studio API client defaults to production URL, overridable via `VITE_API_URL`
+- API defaults to `https://api.helios.shishirkhatri.com.np/api`, overridable via `VITE_API_URL`
+- **Production URL:** `https://7723e449.helios-studio-1wi.pages.dev`
 
 ## 6. Studio (Admin CMS)
 
