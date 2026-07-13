@@ -335,6 +335,12 @@ cd backend && npx tsc --noEmit
 - Studio deployed to Cloudflare Pages (`helios-studio` project) at preview URL
 - Studio `api.js` default URL updated to production (`https://api.helios.shishirkhatri.com.np/api`)
 
+### Phase 8 — Empty State & Polish
+- Added friendly empty-state message to `CategoryList.jsx` when no papers/research/docs exist
+  - Adapts per category (papers / research / docs)
+  - Message: "Something might be going on behind the scenes — please wait a few weeks or months..."
+- Frontend rebuilt and redeployed to Pages
+
 ---
 
 ## 5. Common Admin Tasks
