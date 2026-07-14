@@ -36,88 +36,101 @@ Helios/
 │           ├── Dashboard.jsx     # Papers table + CRUD
 │           └── PaperForm.jsx     # Create/edit + live markdown preview
 └── frontend/
-    ├── index.html
-    ├── vite.config.js            # Dev proxy: /api -> localhost:8787
-    ├── package.json
-    ├── eslint.config.js
+    ├── index.html                # Title "Helios", favicon, preloaded Minecraft fonts
+    ├── vite.config.ts            # React + Tailwind plugins, dev proxy /api -> localhost:8787
+    ├── tsconfig.json
+    ├── package.json              # name "helios"; scripts: dev/build/preview/clean/lint (tsc --noEmit)
+    ├── metadata.json             # AI Studio artifact (name "Helios")
+    ├── .env.example
+    ├── README.md
     ├── public/
     │   ├── favicon.png
-    │   └── icons.svg
+    │   ├── fonts/                # Self-hosted Minecraft webfonts
+    │   │   ├── Minecraft-Regular.woff
+    │   │   ├── Minecraft-Italic.woff
+    │   │   ├── Minecraft-Bold.woff
+    │   │   └── Minecraft-BoldItalic.woff
+    │   ├── animation/
+    │   │   └── loading.lottie    # DotLottie loading animation
+    │   └── dotlottie-player.wasm # Self-hosted Lottie wasm (setWasmUrl)
     └── src/
-        ├── main.jsx              # BrowserRouter wrapper
-        ├── App.jsx               # Routes: /, /papers, /research, /docs + detail pages
-        ├── AppLayout.css
-        ├── index.css             # Design tokens (colors, spacing, typography)
-        ├── components/
-        │   ├── Header.jsx        # Nav with Home, Papers, Research, Docs, Models, About
-        │   ├── Header.css
-        │   ├── Button.jsx
-        │   ├── Button.css
-        │   ├── Card.jsx
-        │   ├── Card.css
-        │   ├── Badge.jsx
-        │   ├── Badge.css
-        │   ├── Footer.jsx
-        │   └── Footer.css
-        └── pages/
-            ├── CategoryList.jsx   # Reusable list page (papers/research/docs)
-            ├── CategoryDetail.jsx # Markdown detail page with back navigation
-            └── Papers.css
+        ├── main.tsx              # React root, renders <App/>
+        ├── App.tsx               # State-based SPA nav (no router); header/footer; paper-detail state
+        ├── api.ts                # fetchPapers / fetchPaper / formatDate
+        ├── data.ts               # MANIFESTO_TEXT (remaining shared content)
+        ├── index.css             # Tailwind import + @font-face (Minecraft) + theme tokens
+        ├── vite-env.d.ts         # VITE_API_URL typing
+        └── components/
+            ├── AboutView.tsx     # About page (mission + 3 pillars)
+            ├── DocsView.tsx      # Fetches docs category, list -> detail
+            ├── Manifesto.tsx     # Manifesto page (signable offline ledger)
+            ├── Markdown.tsx      # react-markdown + remark-gfm, Tailwind-styled
+            ├── ModelExplorer.tsx # "Models Under Development" card
+            ├── NavigationDrawer.tsx # Unused AI Studio artifact (dead code, not imported)
+            ├── PaperDetail.tsx   # Markdown detail view (back nav)
+            ├── PapersView.tsx    # Fetches papers category, list -> detail
+            ├── ResearchView.tsx  # Fetches research category, list -> detail
+            └── Loading.tsx       # DotLottie loading animation component
 ```
 
 ---
 
 ## 1. Frontend Setup
 
+> **Note:** The frontend was migrated from the original plain-CSS / react-router design (in `newfrontend`) into the current Tailwind + TypeScript single-page app. The descriptions below reflect the **current** implementation.
+
 ### Technology Stack
-- **Framework:** React 19 + Vite 8
-- **Routing:** react-router-dom v7
-- **Markdown Rendering:** react-markdown + remark-gfm
-- **Styling:** Plain CSS with custom design tokens
+- **Framework:** React 19 + Vite 6 (TypeScript)
+- **Navigation:** State-based SPA (no `react-router`); `App.tsx` holds `currentPage` + `paperDetail` state
+- **Styling:** Tailwind CSS v4 (via `@tailwindcss/vite`), custom `@theme` tokens
+- **Animation:** `motion` (motion/react)
+- **Icons:** `lucide-react`
+- **Markdown Rendering:** `react-markdown` + `remark-gfm`
+- **Loading Animation:** `@lottiefiles/dotlottie-react` (DotLottie)
+- **Fonts:** Minecraft (self-hosted `.woff`, preloaded)
 
-### Navigation (Header.jsx)
-- **Home** — `/`
-- **Papers** — `/papers`
-- **Research** — `/research`
-- **Docs** — `/docs`
-- **Models** — placeholder (no page yet)
-- **About** — placeholder (no page yet)
+### Navigation (App.tsx)
+State-driven pages (no URL routing): `home`, `models`, `research`, `papers`, `docs`, `about`, `manifesto`. The header is a sticky `HELIOS` wordmark that **collapses to "HI" on scroll** — the middle letters (E, L, O, S) fade and collapse width while H and I remain (Anthropic-style). The footer shows `HELIOS` + the "The Sun Is Rising" tagline; nav links are Research / Docs / Papers / Company (About). There is no Twitter/X link.
 
-Active link detection is based on `location.pathname` prefix matching.
-
-### Routes (App.jsx)
-
-| Path | Component | Description |
+### Views
+| View | Component | Description |
 |------|-----------|-------------|
-| `/` | `HomePage` | Landing page with hero, model families, philosophy, CTA |
-| `/papers` | `CategoryList category="papers"` | Lists papers with category = "papers" |
-| `/research` | `CategoryList category="research"` | Lists papers with category = "research" |
-| `/docs` | `CategoryList category="docs"` | Lists papers with category = "docs" |
-| `/papers/:slug` | `CategoryDetail` | Single paper detail (markdown rendered) |
-| `/research/:slug` | `CategoryDetail` | Single research paper detail |
-| `/docs/:slug` | `CategoryDetail` | Single docs article detail |
+| Home | (in `App.tsx`) | Hero + "decentralizing AI" manifesto banner |
+| Models | `ModelExplorer` | "Models Under Development" card (no hardcoded models) |
+| Research | `ResearchView` | Lists `research` papers (API), card → detail |
+| Papers | `PapersView` | Lists `papers` papers (API), card → detail |
+| Docs | `DocsView` | Lists `docs` papers (API), card → detail |
+| About | `AboutView` | Mission copy + 3 pillars |
+| Manifesto | `Manifesto` | Editorial content + offline signable ledger |
+| Paper detail | `PaperDetail` | Single paper detail (markdown), in-app `paperDetail` state (not a URL) |
 
-### Hero Buttons (HomePage)
-- **"Explore Models"** — navigates to `/papers`
-- **"Read the Docs"** — navigates to `/docs`
+### Hero Buttons (Home)
+- **"Explore Models"** — opens the Models page
+- **"Read Our Manifesto"** — opens the Manifesto page
 
-### Category List (CategoryList.jsx)
-- Fetches `GET /api/helios/papers?category={category}` via `VITE_API_URL` env var (defaults to production URL)
-- Displays paper cards with title, description, and date
-- Each card links to `/{category}/{slug}`
+### Category List (PapersView / ResearchView / DocsView)
+- Fetches `GET /api/helios/papers?category={category}` via `VITE_API_URL` env var (defaults to `https://api.helios.shishirkhatri.com.np/api`)
+- Displays cards with title, description, and formatted date
+- Clicking a card sets `paperDetail` (category + slug) and renders `PaperDetail`
 
-### Category Detail (CategoryDetail.jsx)
-- Fetches `GET /api/helios/papers/{slug}` via `VITE_API_URL` env var
-- Renders markdown content using `react-markdown` + `remark-gfm`
-- Shows category badge, title, description, date
-- "Back to {Category}" link dynamically navigates to the correct category page
-- Custom components for: headings, paragraphs, lists, blockquotes, code blocks, tables
+### Category Detail (PaperDetail.tsx)
+- Fetches `GET /api/helios/papers/{slug}` via `VITE_API_URL`
+- Renders markdown content using `react-markdown` + `remark-gfm` via the `Markdown.tsx` component (Tailwind-styled headings, lists, blockquotes, code blocks, tables)
+- Shows category badge, title, description, publish/update dates, and a "Back to {Category}" button
 
-### Design Tokens (index.css)
-- Colors: brand blue, neutral scale, surface colors, semantic colors
-- Spacing: 4px–96px scale (--space-1 through --space-24)
-- Typography: Söhne font, Inter fallback, h1/h2/h3/p/body-small/caption classes
-- Shadows: flat, raised, elevated, modal, focus
+### Loading Animation (Loading.tsx)
+- Uses `DotLottieReact` playing `public/animation/loading.lottie` (autoplay + loop)
+- Wasm is self-hosted at `public/dotlottie-player.wasm` and wired via `setWasmUrl("/dotlottie-player.wasm")` (avoids CDN dependency)
+- Shown in all four loading states: Papers, Research, Docs lists and the Paper detail
+
+### Fonts (index.css)
+- Minecraft is self-hosted under `public/fonts/` with `@font-face` + `font-display: block`
+- Preloaded via `<link rel="preload" as="font">` in `index.html` (renders in Minecraft from first paint, no fallback flash)
+- The root container uses `overflow-x-clip` (not `overflow-x-hidden`) so it clips horizontal overflow **without breaking** the sticky header
+
+### Styling / Theme
+- Tailwind v4 with `@theme` tokens: `--font-serif/--font-sans/--font-mono` all set to Minecraft; accent color `#F27D26`
+- No separate CSS-module files — components use Tailwind utility classes directly
 
 ---
 
@@ -252,8 +265,8 @@ cd studio && npm run build && npx wrangler pages deploy dist --project-name heli
 # Terminal 1 — Backend (port 8787)
 cd backend && npm run dev
 
-# Terminal 2 — Main Frontend (port 5173)
-cd frontend && npm run dev
+# Terminal 2 — Main Frontend (port 3000)
+cd frontend && npm run dev   # runs `vite --port=3000 --host=0.0.0.0`
 
 # Terminal 3 — Studio Admin (port 5174)
 cd studio && npm run dev
@@ -261,11 +274,12 @@ cd studio && npm run dev
 
 Both Vite dev servers proxy `/api` requests to `http://localhost:8787`.
 
-### Building
+### Building & Linting
 
 ```bash
 # Frontend
 cd frontend && npm run build  # Output: frontend/dist/
+cd frontend && npm run lint   # TypeScript typecheck (tsc --noEmit)
 
 # Backend (typecheck)
 cd backend && npx tsc --noEmit
@@ -353,6 +367,21 @@ cd backend && npx tsc --noEmit
 - Replaced the two model-family cards (Aurora / Helios Gen I and ??? / Helios Gen II) in the HomePage "Model Families" section with a single "Coming Soon" placeholder card
 - Section copy changed to generic "Models coming soon" (no model families / traditional ML wording)
 - Frontend rebuilt and redeployed to Pages
+
+### Phase 11 — Frontend Redesign & Migration (newfrontend → frontend)
+- **Migrated functionality** from the original `frontend/` (plain CSS + react-router) into the new Tailwind + TypeScript design that lived in `newfrontend/`, then removed the old `frontend/` and renamed `newfrontend/` → `frontend/`
+- **Stack change:** React 19 + Vite 6 + TypeScript + Tailwind CSS v4 + `motion` + `lucide-react`; state-based SPA navigation (no `react-router`)
+- **API client (`src/api.ts`):** `fetchPapers(category)` and `fetchPaper(slug)` hitting `GET /api/helios/papers?category=` and `GET /api/helios/papers/:slug` via `VITE_API_URL`
+- **Markdown (`src/components/Markdown.tsx` + `PaperDetail.tsx`):** `react-markdown` + `remark-gfm`, Tailwind-styled; detail is an in-app `paperDetail` state (not a URL route)
+- **Category pages wired to API:** `PapersView`, `ResearchView`, `DocsView` now fetch their category and open `PaperDetail` on click (replacing fake `data.ts` content)
+- **Models page:** `ModelExplorer` now shows a "Models Under Development" card; removed hardcoded `HELIOS_MODELS` from `data.ts`
+- **Logo collapse:** `HELIOS` header wordmark collapses to `HI` on scroll (middle letters fade + collapse width)
+- **Minecraft font:** self-hosted `.woff` files under `public/fonts/`, `@font-face` with `font-display: block`, preloaded in `index.html` (no fallback flash)
+- **Sticky header fix:** root container uses `overflow-x-clip` instead of `overflow-x-hidden` so sticky nav works
+- **Footer:** added "The Sun Is Rising" tagline under HELIOS; removed the Twitter/X link; enlarged
+- **Loading animation (`src/components/Loading.tsx`):** DotLottie (`public/animation/loading.lottie`) with self-hosted `public/dotlottie-player.wasm` via `setWasmUrl`; replaces the old `Loader2` spinners in all four loading states
+- **About copy:** "founded in late 2024" → "founded in early 2026"
+- **Build/lint:** `npm run lint` runs `tsc --noEmit`; removed `eslint.config.js`
 
 ---
 
