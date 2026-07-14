@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/fonts/*",
+    "/animation/*",
+    "/favicon.png",
+    "/favicon.svg",
+    "/bglicon.png",
+    "/dotlottie-player.wasm",
+    "/.well-known/*"
+  ]
+}

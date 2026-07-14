@@ -55,22 +55,24 @@ Helios/
     │   │   └── loading.lottie    # DotLottie loading animation
     │   └── dotlottie-player.wasm # Self-hosted Lottie wasm (setWasmUrl)
     └── src/
-        ├── main.tsx              # React root, renders <App/>
-        ├── App.tsx               # State-based SPA nav (no router); header/footer; paper-detail state
+        ├── main.tsx              # React root, wraps <App/> in <BrowserRouter>
+        ├── App.tsx               # Router layout: persistent Header + mobile menu + <Routes> + Footer; <ScrollToTop>
         ├── api.ts                # fetchPapers / fetchPaper / formatDate
         ├── data.ts               # MANIFESTO_TEXT (remaining shared content)
         ├── index.css             # Tailwind import + @font-face (Minecraft) + theme tokens
         ├── vite-env.d.ts         # VITE_API_URL typing
         └── components/
             ├── AboutView.tsx     # About page (mission + 3 pillars)
-            ├── DocsView.tsx      # Fetches docs category, list -> detail
+            ├── DocsView.tsx      # Fetches docs category, list -> detail (Link per card)
             ├── Manifesto.tsx     # Manifesto page (signable offline ledger)
             ├── Markdown.tsx      # react-markdown + remark-gfm, Tailwind-styled
             ├── ModelExplorer.tsx # "Models Under Development" card
             ├── NavigationDrawer.tsx # Unused AI Studio artifact (dead code, not imported)
-            ├── PaperDetail.tsx   # Markdown detail view (back nav)
-            ├── PapersView.tsx    # Fetches papers category, list -> detail
-            ├── ResearchView.tsx  # Fetches research category, list -> detail
+            ├── PaperDetail.tsx   # Markdown detail view; reads :slug from useParams; "Back" Link
+            ├── PapersView.tsx    # Fetches papers category, list -> detail (Link per card)
+            ├── ResearchView.tsx  # Fetches research category, list -> detail (Link per card)
+            ├── Home.tsx          # Home route: hero + manifesto banner
+            ├── NotFound.tsx      # 404 route (`*`): large "404" text + Back Home link
             └── Loading.tsx       # DotLottie loading animation component
 ```
 
@@ -82,7 +84,7 @@ Helios/
 
 ### Technology Stack
 - **Framework:** React 19 + Vite 6 (TypeScript)
-- **Navigation:** State-based SPA (no `react-router`); `App.tsx` holds `currentPage` + `paperDetail` state
+- **Navigation:** `react-router-dom` v7 `BrowserRouter`; real URL routes (see Phase 13)
 - **Styling:** Tailwind CSS v4 (via `@tailwindcss/vite`), custom `@theme` tokens
 - **Animation:** `motion` (motion/react)
 - **Icons:** `lucide-react`
@@ -91,33 +93,35 @@ Helios/
 - **Fonts:** Minecraft (self-hosted `.woff`, preloaded)
 
 ### Navigation (App.tsx)
-State-driven pages (no URL routing): `home`, `models`, `research`, `papers`, `docs`, `about`, `manifesto`. The header is a sticky `HELIOS` wordmark that **collapses to "HI" on scroll** — the middle letters (E, L, O, S) fade and collapse width while H and I remain (Anthropic-style). The footer shows an **inline SVG Helios logo** (rendered at `h-14 w-14`, ~56px) placed inline **before** the `HELIOS` text on the same flex row, followed by the "The Sun Is Rising" tagline; nav links are Research / Docs / Papers / Company (About). There is no Twitter/X link.
+URL-routed pages via `react-router-dom` (`/`, `/models`, `/research`, `/papers`, `/docs`, `/about`, `/manifesto`, plus `/{research|papers|docs}/:slug` and a `*` 404). `App.tsx` is a persistent layout: sticky `<Header>` (`HELIOS` wordmark that **collapses to "HI" on scroll** — middle letters E/L/O/S fade and collapse width while H and I remain), a mobile dropdown menu, `<main><Routes>`, and `<Footer>`. All nav uses `<NavLink>` with `isActive` styling. A `<ScrollToTop />` helper (uses `useLocation`) resets scroll on route change. The header logo and footer both use the **inline SVG Helios logo** (rendered at `h-14 w-14`, ~56px) with the "The Sun Is Rising" tagline; footer nav links are Research / Docs / Papers / Company (About). There is no Twitter/X link.
 
 ### Views
 | View | Component | Description |
 |------|-----------|-------------|
-| Home | (in `App.tsx`) | Hero + "decentralizing AI" manifesto banner |
+| Home | `Home.tsx` | Hero + "decentralizing AI" manifesto banner |
 | Models | `ModelExplorer` | "Models Under Development" card (no hardcoded models) |
 | Research | `ResearchView` | Lists `research` papers (API), card → detail |
 | Papers | `PapersView` | Lists `papers` papers (API), card → detail |
 | Docs | `DocsView` | Lists `docs` papers (API), card → detail |
 | About | `AboutView` | Mission copy + 3 pillars |
 | Manifesto | `Manifesto` | Editorial content + offline signable ledger |
-| Paper detail | `PaperDetail` | Single paper detail (markdown), in-app `paperDetail` state (not a URL) |
+| Paper detail | `PaperDetail` | Single paper detail (markdown) at `/{category}/{slug}`; reads `slug` from `useParams` |
+| 404 | `NotFound` | Unmatched routes (`*`); large "404" text + Back Home link |
 
 ### Hero Buttons (Home)
-- **"Explore Models"** — opens the Models page
-- **"Read Our Manifesto"** — opens the Manifesto page
+- **"Explore Models"** — `<Link to="/models">`
+- **"Read Our Manifesto"** — `<Link to="/manifesto">`
 
 ### Category List (PapersView / ResearchView / DocsView)
 - Fetches `GET /api/helios/papers?category={category}` via `VITE_API_URL` env var (defaults to `https://api.helios.shishirkhatri.com.np/api`)
 - Displays cards with title, description, and formatted date
-- Clicking a card sets `paperDetail` (category + slug) and renders `PaperDetail`
+- Each card is a `<Link to={`/${category}/${slug}`}>` that opens the detail route
 
 ### Category Detail (PaperDetail.tsx)
 - Fetches `GET /api/helios/papers/{slug}` via `VITE_API_URL`
+- `slug` is read from the route via `useParams` (the `slug` prop is optional)
 - Renders markdown content using `react-markdown` + `remark-gfm` via the `Markdown.tsx` component (Tailwind-styled headings, lists, blockquotes, code blocks, tables)
-- Shows category badge, title, description, publish/update dates, and a "Back to {Category}" button
+- Shows category badge, title, description, publish/update dates, and a "Back to {Category}" `<Link to={`/${category}`}>`
 
 ### Loading Animation (Loading.tsx)
 - Uses `DotLottieReact` playing `public/animation/loading.lottie` (autoplay + loop)
@@ -389,6 +393,49 @@ cd backend && npx tsc --noEmit
 - The SVG uses `viewBox="0 0 1080 1080"`, `fill="#111111"`, and is rendered at `h-14 w-14` (~56px), placed inline **before** the `HELIOS` text on the same flex row (`flex items-center gap-3`).
 - Inline vector keeps the logo crisp at any size (no raster blur from downscaling a PNG).
 - Added `frontend/public/bglicon.png` (1024×1024 Helios logo raster asset) to `public/` as a standalone asset.
+
+### Phase 13 — Real URL Routing (react-router-dom)
+- Replaced the state-based SPA navigation (`currentPage` / `paperDetail` state + `navigateToPage`/`openPaper` handlers) with **`react-router-dom` v7 `BrowserRouter`** for genuine, shareable/deep-linkable URLs.
+- `main.tsx` now wraps `<App />` in `<BrowserRouter>`.
+- `App.tsx` refactored into a persistent layout: `<Header>` (sticky, collapses `HELIOS`→`HI` on scroll) + mobile menu + `<main><Routes>` + `<Footer>`. All nav uses `<NavLink>` with `isActive` styling (desktop, mobile, footer). Added `<ScrollToTop />` (uses `useLocation`) to reset scroll on route change.
+- **Routes:**
+  | Path | Component |
+  |------|-----------|
+  | `/` | `Home` (hero + manifesto banner; extracted to `frontend/src/components/Home.tsx`) |
+  | `/models` | `ModelExplorer` |
+  | `/research` | `ResearchView` |
+  | `/papers` | `PapersView` |
+  | `/docs` | `DocsView` |
+  | `/about` | `AboutView` |
+  | `/manifesto` | `Manifesto` |
+  | `/research/:slug`, `/papers/:slug`, `/docs/:slug` | `PaperDetail` (reads `slug` from `useParams`) |
+  | `*` | `NotFound` (new `frontend/src/components/NotFound.tsx`; large centered "404" text with the `0` in accent `#F27D26`, "Lost in the cosmos" copy, and a Back Home `<Link>`) |
+- Category list views (`PapersView`/`ResearchView`/`DocsView`) now wrap each card in `<Link to={`/${category}/${slug}`}>` (dropped the `onOpenPaper` prop). `PaperDetail` "Back to {label}" uses `<Link to={`/${category}`}>` (dropped the `onBack` prop; `slug` is now optional and falls back to `useParams`).
+- Added `frontend/public/_routes.json` so Cloudflare Pages serves `index.html` for unmatched routes (SPA deep-link/refresh support) while excluding static assets:
+  ```json
+  { "version": 1, "include": ["/*"],
+    "exclude": ["/assets/*","/fonts/*","/animation/*","/favicon.png",
+                "/favicon.svg","/bglicon.png","/dotlottie-player.wasm","/.well-known/*"] }
+  ```
+  - `npm install react-router-dom` added to `frontend/package.json`. Lint + build pass; dev server returns 200 for deep links (e.g. `/research/fine-tuning-on-consumer-hardware`).
+
+### Phase 14 — Minimal Category Cards
+- Removed decorative icons and the category badge from the `PapersView` / `ResearchView` / `DocsView` cards so each card shows only: **publication date**, **title**, and **short description**.
+- `PapersView.tsx`: dropped the `FileText` icon box and the `papers`/`research`/`docs` category badge `<span>`; date now renders as plain `formatDate(created_at)` text.
+- `ResearchView.tsx`: dropped the `Calendar` icon (date text kept).
+- `DocsView.tsx`: dropped the `BookOpen` icon wrapper; card switched from the icon+content flex row to a stacked layout.
+- Removed the now-unused `FileText`, `Calendar`, and `BookOpen` imports from `lucide-react` (kept `ArrowRight`, `AlertTriangle` for the "Read Publication / Read Full Study / Open Guide" footer CTA, which is retained).
+- `frontend/src/api.ts` `PaperListItem` type still carries `category`, but the list views no longer render it.
+- `npm run lint` (tsc --noEmit) passes clean.
+
+### Phase 15 — Footer Links (About US + Socials)
+- Renamed the footer nav link from `Company` to `About US` (still routes to `/about`).
+- Added a separate footer row with two external links (open in new tab, `rel="noopener noreferrer"`):
+  - **GitHub:** `https://github.com/Helios-4U` — rendered with the lucide `Github` icon + "GitHub" label (imported `Github` into `App.tsx`).
+  - **Hugging Face:** `https://huggingface.co/Helios4U` — text-only "Hugging Face" link (no lucide icon exists for it).
+- Both styled to match existing footer links (`font-mono uppercase tracking-wider text-zinc-500 hover:text-black`).
+- Lint + build pass; deployed to Cloudflare Pages (`helios` project).
+
 
 ---
 

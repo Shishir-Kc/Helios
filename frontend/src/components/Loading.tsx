@@ -11,7 +11,7 @@ interface LoadingProps {
 
 export default function Loading({
   size = 120,
-  label = "Loading...",
+  label = "",
   className = "",
 }: LoadingProps) {
   return (

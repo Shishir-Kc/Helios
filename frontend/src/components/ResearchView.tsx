@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
-import { Calendar, ArrowRight, AlertTriangle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, AlertTriangle } from "lucide-react";
 import { fetchPapers, formatDate, type PaperListItem } from "../api";
 import Loading from "./Loading";
 
-interface ResearchViewProps {
-  onOpenPaper: (slug: string) => void;
-}
-
-export default function ResearchView({ onOpenPaper }: ResearchViewProps) {
+export default function ResearchView() {
   const [papers, setPapers] = useState<PaperListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +38,7 @@ export default function ResearchView({ onOpenPaper }: ResearchViewProps) {
         <p className="text-zinc-500 font-sans md:text-lg max-w-xl mx-auto">Our ongoing investigation into neural weight compression, native edge runtimes, and local context optimization.</p>
       </div>
 
-      {loading && <Loading label="Loading studies..." />}
+      {loading && <Loading />}
 
       {error && (
         <div className="flex items-center gap-3 text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-4 max-w-xl mx-auto">
@@ -60,14 +57,13 @@ export default function ResearchView({ onOpenPaper }: ResearchViewProps) {
         {!loading &&
           !error &&
           papers.map((paper) => (
-            <button
+            <Link
               key={paper.slug}
-              onClick={() => onOpenPaper(paper.slug)}
+              to={`/research/${paper.slug}`}
               className="text-left w-full p-6 bg-white border border-zinc-200 rounded-lg hover:border-[#F27D26]/40 transition-all shadow-xs block cursor-pointer group"
             >
               {/* Paper Meta */}
               <div className="flex items-center gap-2 mb-3">
-                <Calendar className="w-4 h-4 text-[#F27D26]" />
                 <span className="text-[10px] font-mono font-bold text-[#F27D26] uppercase tracking-wider">
                   {formatDate(paper.created_at)}
                 </span>
@@ -86,7 +82,7 @@ export default function ResearchView({ onOpenPaper }: ResearchViewProps) {
                   Read Full Study <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                 </span>
               </div>
-            </button>
+            </Link>
           ))}
       </div>
     </div>

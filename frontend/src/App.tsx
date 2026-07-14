@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Link, NavLink, Routes, Route, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
-import { Menu, X, Lock, Clock, WifiOff, ArrowRight } from "lucide-react";
+import { Menu, X, Github } from "lucide-react";
 import ModelExplorer from "./components/ModelExplorer";
 import Manifesto from "./components/Manifesto";
 import ResearchView from "./components/ResearchView";
@@ -13,8 +14,8 @@ import PapersView from "./components/PapersView";
 import DocsView from "./components/DocsView";
 import AboutView from "./components/AboutView";
 import PaperDetail from "./components/PaperDetail";
-
-type PageType = "home" | "models" | "research" | "papers" | "docs" | "about" | "manifesto";
+import Home from "./components/Home";
+import NotFound from "./components/NotFound";
 
 const LOGO_LETTERS: { ch: string; keep: boolean }[] = [
   { ch: "H", keep: true },
@@ -25,48 +26,40 @@ const LOGO_LETTERS: { ch: string; keep: boolean }[] = [
   { ch: "S", keep: false },
 ];
 
+const NAV_LINKS: { label: string; to: string }[] = [
+  { label: "Home", to: "/" },
+  { label: "Models", to: "/models" },
+  { label: "Research", to: "/research" },
+  { label: "Papers", to: "/papers" },
+  { label: "Docs", to: "/docs" },
+  { label: "About", to: "/about" },
+];
 
-interface PaperDetailState {
-  category: string;
-  slug: string;
+function navClass({ isActive }: { isActive: boolean }): string {
+  return `transition-all duration-200 cursor-pointer pb-1 border-b-2 ${
+    isActive
+      ? "text-black border-black"
+      : "text-zinc-500 hover:text-black border-transparent"
+  }`;
 }
 
-export default function App() {
-  const [currentPage, setCurrentPage] = useState<PageType>("home");
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [paperDetail, setPaperDetail] = useState<PaperDetailState | null>(null);
-  const [scrolled, setScrolled] = useState(false);
-
+function ScrollToTop() {
+  const { pathname } = useLocation();
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const navigateToPage = (page: PageType) => {
-    setCurrentPage(page);
-    setPaperDetail(null);
-    setIsMobileMenuOpen(false);
     window.scrollTo({ top: 0, behavior: "instant" });
-  };
+  }, [pathname]);
+  return null;
+}
 
-  const openPaper = (category: string, slug: string) => {
-    setPaperDetail({ category, slug });
-    window.scrollTo({ top: 0, behavior: "instant" });
-  };
-
-  const closePaper = () => {
-    setPaperDetail(null);
-  };
+function Header({ scrolled }: { scrolled: boolean }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 font-sans relative overflow-x-clip flex flex-col">
-      {/* Header Navigation */}
+    <>
       <header id="main-header" className="max-w-7xl mx-auto w-full px-6 md:px-12 py-8 flex items-center justify-between sticky top-0 bg-[#FAF9F6]/90 backdrop-blur-md z-30 border-b border-zinc-200/40">
         <div className="flex flex-col">
-          <button
-            onClick={() => navigateToPage("home")}
+          <Link
+            to="/"
             className="flex items-baseline font-serif font-bold text-3xl tracking-tight text-black select-none hover:opacity-80 transition-opacity cursor-pointer text-left"
           >
             {LOGO_LETTERS.map((l, i) => (
@@ -83,64 +76,21 @@ export default function App() {
                 {l.ch}
               </span>
             ))}
-          </button>
+          </Link>
         </div>
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center space-x-10 text-sm font-mono font-bold uppercase tracking-wider">
-          <button 
-            onClick={() => navigateToPage("home")}
-            className={`transition-all duration-200 cursor-pointer pb-1 border-b-2 ${
-              currentPage === "home" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            Home
-          </button>
-          <button 
-            onClick={() => navigateToPage("models")}
-            className={`transition-all duration-200 cursor-pointer pb-1 border-b-2 ${
-              currentPage === "models" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            Models
-          </button>
-          <button 
-            onClick={() => navigateToPage("research")}
-            className={`transition-all duration-200 cursor-pointer pb-1 border-b-2 ${
-              currentPage === "research" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            Research
-          </button>
-          <button 
-            onClick={() => navigateToPage("papers")}
-            className={`transition-all duration-200 cursor-pointer pb-1 border-b-2 ${
-              currentPage === "papers" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            Papers
-          </button>
-          <button 
-            onClick={() => navigateToPage("docs")}
-            className={`transition-all duration-200 cursor-pointer pb-1 border-b-2 ${
-              currentPage === "docs" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            Docs
-          </button>
-          <button 
-            onClick={() => navigateToPage("about")}
-            className={`transition-all duration-200 cursor-pointer pb-1 border-b-2 ${
-              currentPage === "about" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            About
-          </button>
+          {NAV_LINKS.map((link) => (
+            <NavLink key={link.to} to={link.to} end={link.to === "/"} className={navClass}>
+              {link.label}
+            </NavLink>
+          ))}
         </nav>
 
         {/* Mobile Menu Trigger */}
         <div className="md:hidden">
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 text-zinc-600 hover:text-black focus:outline-none cursor-pointer"
             aria-label="Toggle navigation menu"
@@ -151,194 +101,127 @@ export default function App() {
       </header>
 
       {/* Mobile Navigation Dropdown Menu */}
-      <motion.div 
+      <motion.div
         initial={{ height: 0, opacity: 0 }}
         animate={{ height: isMobileMenuOpen ? "auto" : 0, opacity: isMobileMenuOpen ? 1 : 0 }}
         className="md:hidden overflow-hidden bg-[#FAF9F6] border-b border-zinc-200 px-6 absolute w-full left-0 top-[96px] z-20"
       >
         <div className="flex flex-col space-y-4 py-6 pb-8 text-sm font-mono font-bold uppercase tracking-wider items-start">
-          <button 
-            onClick={() => navigateToPage("home")}
-            className={`text-left pb-0.5 border-b-2 ${
-              currentPage === "home" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            Home
-          </button>
-          <button 
-            onClick={() => navigateToPage("models")}
-            className={`text-left pb-0.5 border-b-2 ${
-              currentPage === "models" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            Models
-          </button>
-          <button 
-            onClick={() => navigateToPage("research")}
-            className={`text-left pb-0.5 border-b-2 ${
-              currentPage === "research" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            Research
-          </button>
-          <button 
-            onClick={() => navigateToPage("papers")}
-            className={`text-left pb-0.5 border-b-2 ${
-              currentPage === "papers" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            Papers
-          </button>
-          <button 
-            onClick={() => navigateToPage("docs")}
-            className={`text-left pb-0.5 border-b-2 ${
-              currentPage === "docs" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            Docs
-          </button>
-          <button 
-            onClick={() => navigateToPage("about")}
-            className={`text-left pb-0.5 border-b-2 ${
-              currentPage === "about" ? "text-black border-black" : "text-zinc-500 hover:text-black border-transparent"
-            }`}
-          >
-            About
-          </button>
+          {NAV_LINKS.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.to === "/"}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={({ isActive }) =>
+                `text-left pb-0.5 border-b-2 ${
+                  isActive
+                    ? "text-black border-black"
+                    : "text-zinc-500 hover:text-black border-transparent"
+                }`
+              }
+            >
+              {link.label}
+            </NavLink>
+          ))}
         </div>
       </motion.div>
+    </>
+  );
+}
 
-      {/* Active Page Route Rendering */}
-      <main className="flex-grow flex flex-col">
-        {currentPage === "home" && (
-          <div className="flex flex-col">
-            {/* Centered Hero Section */}
-            <section id="hero-heading-section" className="pt-20 pb-12 md:pt-28 md:pb-16 max-w-4xl mx-auto w-full px-6 text-center flex flex-col items-center justify-center">
-              <motion.h1 
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="font-serif text-[42px] sm:text-[52px] md:text-[64px] lg:text-[72px] font-normal tracking-tight text-zinc-950 leading-[1.1] mb-6"
-              >
-                Local Intelligence.<br />Specialized for Your Device.
-              </motion.h1>
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.15, ease: "easeOut" }}
-                className="max-w-2xl mx-auto"
-              >
-                <p className="text-zinc-600 text-[14px] sm:text-[16px] md:text-[18px] leading-relaxed font-sans font-light">
-                  Helios develops small, fine-tuned language models designed for privacy and performance at the edge, running directly on personal hardware.
-                </p>
-              </motion.div>
-
-              <motion.div 
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-                className="mt-8"
-              >
-                <button
-                  onClick={() => navigateToPage("models")}
-                  className="px-8 py-3 bg-black hover:bg-[#F27D26] text-white text-xs font-mono font-bold uppercase tracking-wider rounded border border-black hover:border-[#F27D26] transition-colors cursor-pointer"
-                >
-                  Explore Models
-                </button>
-              </motion.div>
-            </section>
-
-            {/* DECENTRALIZING AI BLACK BANNER */}
-            <section id="manifesto-card-section" className="max-w-7xl mx-auto w-full px-6 md:px-12 py-12 md:py-16">
-              <div className="bg-[#0D0D0D] text-white rounded-2xl px-8 py-16 sm:px-12 sm:py-20 md:p-24 text-center shadow-xl border border-zinc-800 relative overflow-hidden group">
-                {/* Clean, subtle geometric glow in background on hover */}
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(242,125,38,0.08),transparent_60%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                
-                <div className="max-w-3xl mx-auto flex flex-col items-center space-y-6 relative z-10">
-                  <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-bold leading-tight text-white max-w-2xl">
-                    Smarter local models.<br />Specially tuned for your niche.
-                  </h2>
-                  <p className="text-zinc-400 font-sans text-xs sm:text-sm md:text-base leading-relaxed max-w-xl font-light">
-                    We build small, state-of-the-art language models because we believe that everyone should have access to local models which are smarter in specific niches—running fully offline, fast, and with secure client control.
-                  </p>
-                  
-                  <div className="pt-4">
-                    <button
-                      onClick={() => navigateToPage("manifesto")}
-                      className="font-mono text-xs font-bold uppercase tracking-widest text-[#F27D26] hover:text-white transition-all inline-flex items-center gap-2 cursor-pointer group/btn"
-                    >
-                      <span className="border-b-2 border-[#F27D26] group-hover/btn:border-white pb-0.5 transition-colors">Read Our Manifesto</span>
-                      <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-        )}
-
-        {/* Other Pages */}
-        {paperDetail ? (
-          <PaperDetail
-            category={paperDetail.category}
-            slug={paperDetail.slug}
-            onBack={closePaper}
-          />
-        ) : (
-          <>
-            {currentPage === "models" && <ModelExplorer />}
-            {currentPage === "research" && (
-              <ResearchView onOpenPaper={(slug) => openPaper("research", slug)} />
-            )}
-            {currentPage === "papers" && (
-              <PapersView onOpenPaper={(slug) => openPaper("papers", slug)} />
-            )}
-            {currentPage === "docs" && (
-              <DocsView onOpenPaper={(slug) => openPaper("docs", slug)} />
-            )}
-            {currentPage === "about" && <AboutView />}
-            {currentPage === "manifesto" && <Manifesto />}
-          </>
-        )}
-      </main>
-
-      {/* Clean Minimalist Footer */}
-      <footer className="border-t border-zinc-200 bg-[#FAF9F6] py-20 mt-16">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-center gap-8 text-center">
-          <div className="flex items-center gap-3">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 1080 1080"
-              className="h-14 w-14"
-              aria-label="Helios"
-              role="img"
-            >
-              <path
+function Footer() {
+  return (
+    <footer className="border-t border-zinc-200 bg-[#FAF9F6] py-20 mt-16">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col items-center gap-8 text-center">
+        <div className="flex items-center gap-3">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 1080 1080"
+            className="h-14 w-14"
+            aria-label="Helios"
+            role="img"
+          >
+            <path
                 fillRule="evenodd"
                 fill="#111111"
                 d="M 537,57 L 482,232 L 417,189 L 412,152 L 377,152 L 347,181 L 371,207 L 355,285 L 192,201 L 275,365 L 198,382 L 166,360 L 142,388 L 142,424 L 183,431 L 222,493 L 47,553 L 222,608 L 179,673 L 142,678 L 142,713 L 171,743 L 197,719 L 275,735 L 191,898 L 355,815 L 372,892 L 350,924 L 378,948 L 414,948 L 421,907 L 483,868 L 543,1043 L 598,868 L 663,911 L 668,948 L 703,948 L 733,919 L 709,893 L 725,815 L 888,899 L 805,735 L 882,718 L 914,740 L 938,712 L 938,676 L 897,669 L 858,607 L 1033,547 L 858,492 L 901,427 L 938,422 L 938,387 L 909,357 L 883,381 L 805,365 L 889,202 L 725,285 L 708,208 L 730,176 L 702,152 L 666,152 L 659,193 L 597,232 Z M 660,878 L 664,878 L 666,880 L 666,882 L 667,883 L 667,884 L 671,888 L 671,890 L 669,892 L 665,892 L 663,890 L 662,890 L 659,887 L 659,883 L 660,882 L 659,881 L 659,879 Z M 421,877 L 422,878 L 422,880 L 421,881 L 421,883 L 422,884 L 422,886 L 421,887 L 421,888 L 418,891 L 417,891 L 416,892 L 415,892 L 414,893 L 412,893 L 411,892 L 411,891 L 410,890 L 410,888 L 411,887 L 412,887 L 413,886 L 413,884 L 414,883 L 414,881 L 417,878 L 418,878 L 419,877 Z M 394,868 L 395,869 L 395,874 L 394,875 L 394,876 L 393,877 L 393,883 L 392,884 L 390,884 L 387,881 L 387,880 L 386,879 L 386,873 L 387,872 L 387,871 L 388,870 L 390,870 L 390,869 L 391,868 Z M 687,865 L 689,865 L 690,866 L 690,869 L 691,869 L 692,870 L 693,870 L 694,871 L 694,876 L 695,877 L 695,879 L 694,880 L 693,880 L 693,882 L 692,883 L 689,883 L 687,881 L 687,876 L 686,875 L 686,874 L 685,873 L 685,868 L 686,867 L 686,866 Z M 626,866 L 627,865 L 629,865 L 631,867 L 632,867 L 633,868 L 633,869 L 634,870 L 634,872 L 633,873 L 630,873 L 629,872 L 629,871 L 628,870 L 627,870 L 626,869 Z M 454,865 L 455,866 L 455,869 L 454,870 L 453,870 L 450,873 L 448,873 L 447,872 L 447,869 L 451,865 Z M 554,836 L 557,839 L 558,839 L 560,843 L 564,846 L 568,846 L 568,845 L 571,843 L 576,843 L 578,845 L 582,845 L 584,848 L 584,851 L 586,853 L 586,856 L 585,857 L 585,860 L 582,864 L 583,865 L 583,869 L 584,870 L 584,875 L 580,879 L 579,879 L 579,882 L 577,883 L 578,898 L 576,900 L 574,905 L 574,909 L 576,913 L 575,919 L 573,922 L 571,922 L 571,923 L 565,928 L 565,932 L 563,935 L 562,942 L 561,943 L 561,945 L 562,946 L 562,952 L 554,958 L 550,960 L 547,960 L 545,958 L 545,955 L 546,954 L 546,952 L 548,950 L 548,945 L 547,944 L 547,933 L 548,932 L 548,929 L 547,928 L 547,919 L 548,918 L 547,902 L 548,901 L 548,894 L 547,893 L 547,888 L 546,887 L 546,885 L 548,883 L 548,877 L 547,876 L 548,862 L 547,861 L 547,856 L 545,854 L 545,850 L 546,849 L 545,842 L 547,837 L 549,836 Z M 526,836 L 532,836 L 535,839 L 535,845 L 534,847 L 536,852 L 536,854 L 533,857 L 533,864 L 532,865 L 534,870 L 534,875 L 532,880 L 532,882 L 534,885 L 534,888 L 533,889 L 533,896 L 532,897 L 532,900 L 534,902 L 534,910 L 532,914 L 532,917 L 534,919 L 534,925 L 533,926 L 534,944 L 532,948 L 533,949 L 533,951 L 535,952 L 535,955 L 536,956 L 536,958 L 534,960 L 530,960 L 525,956 L 523,956 L 519,953 L 519,950 L 518,949 L 518,947 L 519,946 L 519,938 L 518,937 L 518,935 L 516,932 L 515,928 L 507,921 L 505,917 L 506,905 L 505,904 L 504,899 L 502,896 L 502,894 L 504,891 L 504,886 L 503,885 L 502,880 L 500,879 L 497,875 L 497,868 L 498,867 L 498,864 L 495,860 L 495,857 L 494,856 L 494,854 L 496,852 L 496,849 L 499,845 L 502,845 L 504,843 L 510,843 L 511,845 L 513,846 L 516,846 L 518,845 Z M 376,835 L 379,835 L 380,836 L 380,839 L 381,840 L 381,842 L 380,843 L 380,844 L 379,845 L 377,845 L 376,844 L 376,840 L 375,839 L 375,836 Z M 702,834 L 704,834 L 705,835 L 705,843 L 704,844 L 702,844 L 700,842 L 700,836 Z M 474,784 L 475,783 L 477,783 L 478,784 L 480,784 L 482,786 L 482,787 L 485,790 L 486,790 L 487,791 L 488,791 L 490,793 L 490,794 L 493,796 L 493,798 L 494,798 L 498,802 L 499,802 L 501,804 L 501,805 L 504,808 L 505,808 L 515,818 L 515,819 L 516,820 L 516,822 L 513,824 L 510,824 L 509,825 L 506,825 L 501,830 L 501,832 L 498,835 L 488,835 L 487,834 L 486,834 L 484,832 L 484,830 L 482,828 L 482,827 L 481,826 L 481,821 L 482,820 L 483,820 L 483,814 L 482,813 L 482,811 L 481,810 L 481,806 L 479,804 L 479,803 L 477,801 L 477,800 L 476,800 L 474,798 L 473,798 L 471,795 L 471,793 L 473,790 L 473,786 L 474,785 Z M 607,781 L 608,782 L 608,784 L 607,785 L 606,785 L 607,786 L 607,790 L 609,793 L 609,795 L 608,796 L 608,797 L 606,799 L 605,799 L 603,801 L 602,801 L 602,803 L 600,805 L 600,806 L 599,807 L 599,812 L 598,813 L 598,820 L 599,821 L 599,826 L 598,827 L 598,828 L 596,830 L 596,831 L 595,832 L 595,833 L 593,835 L 582,835 L 580,833 L 580,832 L 579,831 L 579,830 L 575,826 L 573,826 L 570,824 L 567,824 L 565,822 L 565,818 L 569,814 L 570,814 L 570,813 L 574,809 L 575,809 L 579,805 L 579,804 L 580,803 L 581,803 L 585,799 L 586,799 L 587,798 L 587,797 L 590,794 L 590,793 L 592,791 L 593,791 L 594,790 L 595,790 L 598,787 L 598,786 L 601,783 L 604,783 L 604,782 L 605,781 Z M 429,781 L 431,783 L 432,791 L 430,796 L 422,803 L 420,803 L 419,805 L 419,814 L 420,815 L 419,822 L 420,824 L 426,828 L 430,829 L 434,828 L 435,825 L 439,821 L 442,820 L 446,815 L 444,807 L 444,802 L 446,800 L 446,798 L 451,793 L 455,792 L 459,795 L 460,801 L 465,805 L 466,831 L 468,837 L 474,843 L 474,848 L 473,849 L 466,848 L 460,849 L 454,858 L 445,863 L 444,867 L 441,871 L 426,872 L 423,875 L 421,875 L 419,873 L 416,863 L 421,858 L 423,852 L 421,849 L 421,846 L 424,844 L 421,837 L 416,838 L 414,840 L 415,844 L 409,848 L 407,852 L 408,853 L 407,859 L 405,861 L 401,861 L 397,865 L 394,865 L 393,864 L 394,859 L 384,849 L 384,842 L 386,839 L 386,836 L 383,826 L 385,825 L 386,821 L 385,816 L 377,810 L 377,806 L 380,804 L 391,803 L 398,796 L 404,793 L 413,783 L 420,785 L 422,781 Z M 654,780 L 658,781 L 661,785 L 668,784 L 674,791 L 678,794 L 680,794 L 686,801 L 691,804 L 701,804 L 704,807 L 704,809 L 700,813 L 698,813 L 695,817 L 695,823 L 697,826 L 697,829 L 694,838 L 697,844 L 697,848 L 688,857 L 686,864 L 683,864 L 681,862 L 673,859 L 674,852 L 673,850 L 671,849 L 671,847 L 669,847 L 666,844 L 666,840 L 659,836 L 659,839 L 657,840 L 656,844 L 659,846 L 658,852 L 659,856 L 664,862 L 664,866 L 662,867 L 660,874 L 657,874 L 655,872 L 651,871 L 642,872 L 637,868 L 636,864 L 633,861 L 629,860 L 625,857 L 623,851 L 620,848 L 616,847 L 613,849 L 608,849 L 606,847 L 606,843 L 610,840 L 614,834 L 616,804 L 621,801 L 620,797 L 623,793 L 628,792 L 633,796 L 636,801 L 636,809 L 634,814 L 635,817 L 637,819 L 639,819 L 641,822 L 643,822 L 647,828 L 650,829 L 660,825 L 661,822 L 660,814 L 662,807 L 659,802 L 654,800 L 650,796 L 649,791 L 650,782 Z M 733,760 L 736,758 L 741,758 L 743,759 L 745,763 L 752,768 L 752,772 L 754,773 L 757,779 L 761,780 L 766,785 L 766,787 L 767,787 L 770,791 L 772,791 L 777,796 L 780,801 L 782,803 L 784,803 L 790,809 L 794,815 L 796,815 L 806,826 L 814,832 L 814,834 L 816,837 L 824,840 L 825,841 L 825,845 L 820,848 L 809,849 L 805,845 L 805,844 L 797,838 L 794,838 L 790,835 L 776,835 L 772,832 L 771,829 L 768,826 L 768,825 L 766,825 L 763,823 L 759,822 L 756,819 L 756,817 L 755,817 L 752,813 L 750,812 L 747,812 L 746,810 L 744,811 L 740,811 L 736,808 L 736,806 L 734,805 L 734,803 L 731,801 L 727,801 L 726,799 L 724,799 L 722,797 L 722,794 L 720,792 L 720,788 L 723,781 L 726,779 L 728,779 L 732,777 L 734,774 L 733,773 L 733,767 L 732,766 L 732,762 Z M 348,762 L 347,775 L 349,778 L 352,778 L 356,780 L 357,782 L 359,783 L 359,787 L 360,788 L 360,792 L 358,795 L 358,797 L 355,799 L 354,801 L 350,801 L 346,804 L 343,810 L 341,811 L 336,811 L 335,810 L 334,812 L 331,812 L 325,817 L 323,822 L 313,825 L 309,830 L 309,832 L 303,836 L 301,836 L 300,835 L 290,835 L 287,838 L 283,839 L 277,843 L 272,849 L 260,848 L 255,845 L 255,842 L 257,840 L 259,840 L 261,838 L 265,837 L 267,832 L 269,831 L 269,830 L 271,829 L 272,827 L 276,826 L 280,820 L 284,816 L 287,815 L 287,814 L 289,813 L 291,808 L 297,803 L 299,803 L 299,802 L 301,801 L 302,798 L 308,791 L 311,791 L 311,790 L 313,789 L 316,783 L 317,783 L 320,780 L 323,779 L 323,778 L 329,771 L 328,770 L 328,768 L 329,767 L 331,767 L 334,764 L 335,764 L 335,762 L 340,758 L 344,758 Z M 657,760 L 658,759 L 661,759 L 662,758 L 688,758 L 689,757 L 692,757 L 693,758 L 696,758 L 697,757 L 705,757 L 706,758 L 707,757 L 713,757 L 715,759 L 715,762 L 714,763 L 714,764 L 713,765 L 713,766 L 712,767 L 712,768 L 710,770 L 710,772 L 711,773 L 711,776 L 712,777 L 712,781 L 711,782 L 710,782 L 710,783 L 707,786 L 706,786 L 706,787 L 704,789 L 700,789 L 699,788 L 697,788 L 696,787 L 693,787 L 692,786 L 692,784 L 691,784 L 690,783 L 690,781 L 686,777 L 684,777 L 683,776 L 683,775 L 682,775 L 679,773 L 677,773 L 676,772 L 670,772 L 669,773 L 667,773 L 666,772 L 665,772 L 663,770 L 663,767 L 662,767 L 660,765 L 660,763 L 658,763 L 657,762 Z M 365,760 L 367,758 L 368,758 L 369,757 L 373,757 L 374,758 L 375,758 L 376,757 L 383,757 L 384,758 L 411,758 L 412,759 L 413,758 L 418,758 L 421,760 L 421,764 L 418,767 L 418,768 L 417,769 L 417,770 L 414,773 L 411,773 L 410,772 L 405,772 L 404,773 L 401,773 L 399,775 L 398,775 L 396,777 L 395,777 L 390,782 L 390,784 L 389,785 L 388,785 L 388,786 L 387,787 L 385,787 L 384,788 L 380,788 L 379,789 L 376,789 L 374,787 L 374,786 L 373,786 L 370,783 L 369,783 L 368,782 L 368,777 L 369,776 L 369,774 L 370,773 L 370,769 L 369,769 L 368,768 L 368,767 L 367,766 L 367,765 L 365,762 Z M 752,742 L 765,743 L 768,741 L 768,738 L 770,734 L 772,733 L 773,731 L 777,731 L 778,730 L 782,730 L 785,732 L 787,732 L 789,735 L 791,736 L 791,740 L 794,744 L 800,747 L 801,749 L 801,754 L 800,755 L 802,756 L 802,759 L 807,765 L 812,767 L 815,777 L 820,781 L 822,781 L 826,787 L 826,789 L 825,790 L 825,800 L 828,803 L 829,807 L 833,813 L 839,818 L 838,830 L 835,835 L 832,835 L 830,833 L 830,831 L 828,829 L 827,825 L 822,823 L 821,821 L 820,821 L 819,819 L 817,818 L 816,814 L 810,810 L 806,806 L 805,803 L 804,803 L 803,801 L 798,799 L 793,793 L 793,791 L 792,791 L 791,789 L 788,788 L 781,782 L 781,779 L 780,779 L 779,777 L 773,774 L 773,773 L 770,770 L 769,767 L 768,767 L 761,761 L 760,762 L 758,762 L 757,761 L 757,759 L 754,756 L 754,755 L 752,755 L 748,750 L 748,746 Z M 330,743 L 332,746 L 332,751 L 331,753 L 327,755 L 322,762 L 318,762 L 317,764 L 311,767 L 310,771 L 305,776 L 303,776 L 303,777 L 299,780 L 299,782 L 294,787 L 289,790 L 287,792 L 287,794 L 281,800 L 275,804 L 275,806 L 264,816 L 258,824 L 256,824 L 253,826 L 250,834 L 249,835 L 245,835 L 242,830 L 241,819 L 245,815 L 246,815 L 252,807 L 252,804 L 255,800 L 255,786 L 258,782 L 261,781 L 264,778 L 265,778 L 265,776 L 267,773 L 268,769 L 271,766 L 273,766 L 273,765 L 277,762 L 278,760 L 278,757 L 280,756 L 279,754 L 279,750 L 282,746 L 284,746 L 285,744 L 287,744 L 289,741 L 289,737 L 291,736 L 291,734 L 293,732 L 296,732 L 298,730 L 302,730 L 309,733 L 311,736 L 311,738 L 313,742 L 316,744 L 317,743 L 323,743 L 324,742 L 328,742 Z M 246,712 L 248,710 L 254,710 L 256,712 L 256,714 L 255,715 L 247,715 L 246,714 Z M 825,711 L 826,710 L 829,710 L 830,709 L 832,709 L 833,710 L 834,710 L 835,711 L 835,713 L 834,714 L 830,714 L 829,715 L 826,715 L 825,714 Z M 858,696 L 859,695 L 864,695 L 865,696 L 866,696 L 867,697 L 873,697 L 874,698 L 874,700 L 871,703 L 870,703 L 869,704 L 863,704 L 862,703 L 861,703 L 860,702 L 860,700 L 859,700 L 858,699 Z M 225,697 L 225,699 L 224,700 L 221,700 L 221,701 L 220,702 L 220,703 L 219,704 L 214,704 L 213,705 L 211,705 L 210,704 L 210,703 L 208,703 L 207,702 L 207,699 L 209,697 L 214,697 L 215,696 L 216,696 L 217,695 L 222,695 L 223,696 L 224,696 Z M 555,694 L 559,696 L 562,699 L 565,705 L 567,707 L 573,710 L 574,716 L 576,718 L 576,722 L 575,724 L 576,724 L 578,727 L 584,732 L 584,733 L 590,740 L 591,740 L 610,758 L 610,762 L 606,765 L 604,765 L 600,767 L 596,772 L 590,772 L 589,773 L 587,773 L 587,774 L 584,777 L 579,780 L 577,780 L 575,784 L 567,791 L 567,792 L 561,798 L 561,799 L 558,801 L 554,807 L 552,807 L 550,809 L 547,809 L 545,807 L 545,800 L 548,796 L 548,794 L 546,791 L 547,783 L 548,782 L 547,773 L 546,772 L 546,768 L 548,765 L 548,760 L 547,759 L 547,749 L 548,748 L 548,742 L 547,741 L 547,739 L 544,736 L 544,721 L 545,720 L 545,718 L 548,715 L 548,712 L 546,709 L 546,700 L 548,698 L 552,699 L 552,695 L 553,694 Z M 525,694 L 528,694 L 529,695 L 529,699 L 530,698 L 532,698 L 534,700 L 534,702 L 535,703 L 535,706 L 532,712 L 532,715 L 536,719 L 536,736 L 532,742 L 532,748 L 534,749 L 534,759 L 532,763 L 534,766 L 534,775 L 532,780 L 532,782 L 534,785 L 534,791 L 532,794 L 532,796 L 536,802 L 536,806 L 533,809 L 526,808 L 524,803 L 515,794 L 515,793 L 514,793 L 513,791 L 505,784 L 505,782 L 504,782 L 503,780 L 499,779 L 495,775 L 492,774 L 490,772 L 485,773 L 480,767 L 476,765 L 474,765 L 470,762 L 470,758 L 473,756 L 488,741 L 490,741 L 492,737 L 503,726 L 503,725 L 505,724 L 504,722 L 504,718 L 506,716 L 507,710 L 513,707 L 515,705 L 518,699 L 521,696 Z M 750,669 L 754,669 L 757,672 L 758,672 L 759,673 L 760,673 L 763,676 L 763,679 L 762,680 L 762,685 L 763,686 L 763,689 L 765,691 L 765,692 L 767,694 L 767,695 L 772,700 L 774,700 L 775,701 L 775,702 L 776,702 L 777,703 L 777,705 L 778,706 L 778,710 L 779,711 L 779,714 L 777,716 L 776,716 L 776,717 L 773,720 L 773,721 L 772,722 L 767,722 L 766,721 L 764,721 L 763,720 L 759,720 L 759,721 L 758,722 L 757,722 L 756,723 L 755,723 L 752,725 L 750,725 L 748,723 L 748,722 L 747,721 L 747,717 L 748,716 L 748,715 L 747,714 L 747,707 L 748,706 L 748,679 L 749,678 L 748,677 L 748,672 Z M 211,669 L 212,670 L 212,674 L 210,676 L 208,676 L 207,677 L 206,677 L 202,681 L 200,681 L 198,679 L 198,675 L 200,673 L 200,672 L 203,669 L 207,669 L 208,670 L 209,669 Z M 867,669 L 868,668 L 870,668 L 871,669 L 873,669 L 874,668 L 876,668 L 877,669 L 878,669 L 881,672 L 881,673 L 882,674 L 882,675 L 883,676 L 883,678 L 882,679 L 881,679 L 880,680 L 878,680 L 877,679 L 877,678 L 876,677 L 874,677 L 873,676 L 871,676 L 868,673 L 868,672 L 867,671 Z M 328,667 L 330,667 L 331,668 L 331,671 L 332,672 L 332,698 L 333,699 L 333,702 L 332,703 L 332,706 L 333,707 L 333,715 L 332,716 L 333,717 L 333,723 L 331,725 L 328,725 L 327,724 L 326,724 L 325,723 L 324,723 L 323,722 L 322,722 L 320,720 L 318,720 L 317,721 L 314,721 L 313,722 L 309,722 L 308,721 L 308,720 L 307,720 L 304,717 L 304,716 L 303,716 L 301,714 L 301,710 L 302,709 L 302,707 L 303,706 L 303,703 L 304,702 L 306,702 L 306,701 L 307,700 L 309,700 L 313,696 L 313,694 L 314,693 L 315,693 L 315,692 L 317,689 L 317,687 L 318,686 L 318,680 L 317,679 L 317,677 L 318,676 L 318,675 L 320,673 L 323,673 L 323,672 L 325,670 L 327,670 L 327,668 Z M 632,662 L 633,661 L 636,661 L 637,663 L 639,660 L 642,660 L 643,662 L 645,662 L 649,670 L 651,672 L 656,672 L 669,685 L 670,691 L 674,695 L 676,695 L 683,702 L 683,704 L 686,707 L 690,708 L 691,710 L 693,711 L 696,717 L 698,719 L 700,719 L 706,725 L 708,729 L 713,730 L 718,734 L 718,738 L 717,739 L 715,739 L 713,741 L 706,741 L 705,740 L 680,740 L 679,739 L 676,739 L 673,741 L 665,741 L 664,742 L 662,742 L 659,746 L 650,746 L 649,747 L 646,747 L 643,749 L 640,749 L 638,747 L 638,723 L 639,722 L 639,715 L 638,714 L 638,697 L 635,697 L 634,696 L 634,693 L 632,690 L 632,688 L 630,687 L 631,681 L 632,680 L 631,672 L 630,671 L 630,667 L 632,664 Z M 449,661 L 450,671 L 449,672 L 449,678 L 448,680 L 449,681 L 450,687 L 447,691 L 447,695 L 445,697 L 442,697 L 442,716 L 441,717 L 441,722 L 442,723 L 442,747 L 440,749 L 435,749 L 434,747 L 431,747 L 430,746 L 425,746 L 424,747 L 422,747 L 421,746 L 421,744 L 417,742 L 408,741 L 404,739 L 401,739 L 400,740 L 379,740 L 378,741 L 368,741 L 367,740 L 363,740 L 362,739 L 362,734 L 368,730 L 372,730 L 374,725 L 377,722 L 378,722 L 379,720 L 382,719 L 384,717 L 385,714 L 391,708 L 394,707 L 397,704 L 397,702 L 403,696 L 408,694 L 410,691 L 411,685 L 422,674 L 423,674 L 424,672 L 429,672 L 431,670 L 435,662 L 437,662 L 438,660 L 441,660 L 443,663 L 446,660 L 448,660 Z M 651,641 L 661,640 L 662,641 L 668,641 L 670,642 L 671,641 L 677,640 L 681,643 L 685,643 L 687,645 L 687,648 L 706,648 L 707,649 L 712,649 L 713,648 L 737,648 L 739,650 L 739,655 L 737,656 L 737,659 L 736,660 L 736,665 L 737,666 L 737,668 L 736,669 L 734,669 L 732,673 L 731,682 L 729,686 L 729,689 L 730,690 L 730,711 L 731,712 L 731,722 L 730,723 L 730,727 L 729,728 L 724,728 L 720,722 L 720,718 L 715,716 L 712,713 L 712,712 L 710,711 L 709,708 L 707,706 L 704,705 L 698,699 L 697,696 L 694,693 L 692,693 L 686,687 L 684,682 L 681,680 L 675,679 L 664,668 L 664,667 L 662,666 L 662,661 L 660,659 L 652,655 L 652,653 L 650,652 L 650,649 L 653,647 L 650,644 L 650,642 Z M 428,642 L 429,643 L 429,646 L 427,647 L 430,649 L 430,652 L 428,653 L 428,655 L 420,659 L 418,661 L 418,666 L 405,679 L 399,680 L 395,684 L 395,686 L 388,693 L 386,693 L 383,696 L 382,700 L 380,701 L 379,703 L 373,706 L 371,708 L 371,710 L 365,716 L 361,718 L 360,723 L 356,728 L 352,728 L 351,727 L 351,725 L 349,723 L 349,716 L 350,715 L 350,690 L 351,689 L 351,686 L 349,683 L 349,675 L 348,674 L 348,672 L 344,669 L 344,660 L 343,659 L 343,656 L 341,653 L 341,650 L 343,648 L 367,648 L 368,649 L 375,649 L 376,648 L 393,648 L 393,645 L 394,644 L 397,644 L 400,642 L 402,642 L 403,640 L 409,641 L 410,642 L 418,641 L 419,640 L 423,640 L 426,642 Z M 224,636 L 225,637 L 225,639 L 223,641 L 223,642 L 222,643 L 221,643 L 220,644 L 218,644 L 217,643 L 217,640 L 218,639 L 219,639 L 220,638 L 220,637 L 221,636 Z M 855,636 L 856,635 L 859,635 L 860,636 L 860,637 L 863,640 L 863,642 L 862,643 L 859,643 L 855,639 Z M 838,616 L 839,617 L 838,624 L 839,630 L 848,636 L 853,645 L 857,646 L 861,649 L 862,664 L 865,667 L 865,669 L 863,671 L 853,674 L 846,668 L 842,667 L 839,669 L 836,669 L 834,666 L 832,666 L 827,669 L 828,674 L 830,676 L 834,675 L 835,678 L 842,683 L 843,682 L 849,683 L 851,685 L 851,689 L 855,693 L 855,696 L 854,697 L 849,696 L 839,706 L 832,706 L 829,704 L 826,704 L 816,707 L 815,705 L 811,704 L 806,705 L 800,713 L 796,713 L 794,710 L 793,699 L 786,692 L 783,686 L 773,677 L 775,670 L 771,668 L 771,661 L 773,659 L 781,658 L 786,660 L 793,668 L 793,670 L 795,671 L 804,671 L 805,670 L 812,671 L 817,666 L 819,658 L 811,651 L 807,645 L 803,644 L 797,646 L 792,646 L 783,639 L 782,635 L 785,631 L 791,630 L 795,625 L 821,624 L 827,622 L 833,616 Z M 243,616 L 247,616 L 250,620 L 256,624 L 286,626 L 289,631 L 293,630 L 297,633 L 298,638 L 294,643 L 289,646 L 281,646 L 276,644 L 273,645 L 271,647 L 271,649 L 268,651 L 268,653 L 262,657 L 261,660 L 265,670 L 268,671 L 276,670 L 283,672 L 288,669 L 290,664 L 294,660 L 304,659 L 309,661 L 310,666 L 305,671 L 306,678 L 299,684 L 296,688 L 296,690 L 289,696 L 286,701 L 286,711 L 283,714 L 281,714 L 277,710 L 277,708 L 273,705 L 267,705 L 264,707 L 261,707 L 252,704 L 246,707 L 242,707 L 233,698 L 226,696 L 226,693 L 228,691 L 231,683 L 238,684 L 240,683 L 241,681 L 243,681 L 243,679 L 246,676 L 250,676 L 254,669 L 251,669 L 250,667 L 246,666 L 244,669 L 238,668 L 234,669 L 228,674 L 224,674 L 223,672 L 216,670 L 216,667 L 218,665 L 219,661 L 218,652 L 222,647 L 226,646 L 229,643 L 230,639 L 233,635 L 239,633 L 242,630 L 243,626 L 241,623 L 241,618 Z M 255,592 L 257,590 L 258,590 L 259,589 L 260,589 L 264,585 L 264,583 L 266,580 L 266,577 L 268,575 L 272,575 L 276,579 L 276,580 L 277,580 L 281,584 L 281,585 L 285,589 L 286,589 L 287,590 L 287,591 L 291,595 L 291,596 L 292,597 L 293,597 L 296,600 L 297,600 L 299,602 L 299,603 L 300,604 L 300,605 L 303,608 L 304,608 L 307,611 L 307,614 L 308,614 L 309,615 L 309,617 L 308,618 L 306,618 L 305,617 L 305,616 L 304,617 L 300,617 L 297,619 L 295,619 L 294,618 L 293,618 L 291,616 L 291,615 L 289,613 L 289,612 L 287,612 L 285,610 L 284,610 L 283,609 L 278,609 L 277,608 L 270,608 L 269,609 L 264,609 L 263,608 L 262,608 L 260,606 L 259,606 L 258,605 L 257,605 L 255,603 Z M 812,574 L 814,577 L 814,580 L 815,581 L 815,584 L 820,589 L 822,589 L 825,592 L 825,602 L 824,603 L 824,604 L 822,606 L 820,606 L 818,608 L 817,608 L 816,609 L 811,609 L 810,608 L 810,607 L 804,607 L 803,608 L 801,608 L 800,609 L 796,609 L 794,611 L 793,611 L 791,613 L 790,613 L 790,614 L 788,616 L 788,617 L 785,619 L 783,619 L 780,617 L 776,617 L 775,616 L 774,616 L 773,615 L 773,613 L 774,612 L 774,610 L 776,608 L 777,608 L 780,605 L 780,604 L 781,603 L 781,602 L 783,600 L 784,600 L 786,597 L 788,597 L 788,596 L 792,592 L 792,591 L 794,589 L 795,589 L 798,586 L 798,585 L 808,575 L 809,575 L 810,574 Z M 546,565 L 548,565 L 551,570 L 562,579 L 562,581 L 566,587 L 572,588 L 585,601 L 585,604 L 588,610 L 594,612 L 598,616 L 598,624 L 600,629 L 600,633 L 605,637 L 605,643 L 604,644 L 605,646 L 609,647 L 612,656 L 612,661 L 611,662 L 612,663 L 611,666 L 612,674 L 611,675 L 615,678 L 616,683 L 618,685 L 617,695 L 621,700 L 621,709 L 620,710 L 621,723 L 620,724 L 620,738 L 619,739 L 615,738 L 609,731 L 606,730 L 597,720 L 589,714 L 588,707 L 580,701 L 580,698 L 578,694 L 578,689 L 572,682 L 564,676 L 562,670 L 560,668 L 562,663 L 556,658 L 556,651 L 550,641 L 546,638 L 546,632 L 549,626 L 544,618 L 544,600 L 548,594 L 547,589 L 545,586 L 547,576 L 546,575 L 547,572 L 545,569 Z M 534,565 L 535,570 L 533,572 L 534,573 L 535,586 L 533,589 L 532,594 L 536,600 L 536,618 L 531,626 L 534,632 L 534,638 L 529,643 L 527,648 L 524,651 L 525,658 L 518,663 L 520,668 L 518,670 L 516,676 L 508,682 L 502,689 L 502,694 L 500,698 L 500,701 L 492,707 L 491,714 L 486,719 L 483,720 L 481,724 L 475,730 L 473,730 L 464,739 L 461,739 L 460,738 L 460,731 L 461,730 L 459,720 L 459,713 L 460,712 L 459,700 L 463,695 L 462,685 L 465,681 L 465,678 L 469,675 L 468,674 L 469,669 L 468,656 L 470,653 L 471,647 L 476,645 L 475,637 L 480,633 L 480,629 L 482,624 L 482,616 L 486,612 L 492,610 L 494,607 L 495,601 L 508,588 L 514,587 L 516,585 L 518,579 L 521,576 L 524,575 L 532,565 Z M 130,557 L 132,555 L 135,555 L 136,556 L 138,556 L 140,558 L 145,558 L 146,557 L 157,557 L 158,558 L 161,558 L 162,557 L 171,557 L 172,558 L 188,557 L 189,558 L 196,558 L 197,557 L 202,557 L 203,556 L 205,556 L 207,558 L 213,558 L 214,557 L 228,558 L 229,557 L 234,557 L 236,555 L 240,555 L 241,556 L 248,555 L 253,557 L 254,559 L 254,564 L 251,567 L 251,568 L 247,570 L 244,574 L 244,578 L 245,578 L 247,581 L 247,586 L 245,588 L 245,592 L 242,594 L 239,594 L 237,596 L 234,596 L 233,595 L 230,595 L 226,592 L 225,593 L 221,593 L 220,594 L 215,594 L 211,590 L 211,589 L 208,589 L 207,587 L 192,588 L 190,586 L 185,584 L 181,584 L 177,586 L 171,585 L 168,583 L 168,581 L 167,581 L 162,575 L 158,575 L 155,573 L 148,572 L 147,571 L 145,571 L 144,572 L 138,572 L 132,564 L 130,560 Z M 826,564 L 826,558 L 829,555 L 835,555 L 837,556 L 842,554 L 844,554 L 847,557 L 854,557 L 855,558 L 860,556 L 865,556 L 870,558 L 872,558 L 875,556 L 878,556 L 879,557 L 886,557 L 887,558 L 890,558 L 892,556 L 900,556 L 904,558 L 907,558 L 909,556 L 915,556 L 916,557 L 934,556 L 938,558 L 939,557 L 941,557 L 942,555 L 945,555 L 946,554 L 948,554 L 950,556 L 950,560 L 946,565 L 946,567 L 943,571 L 940,571 L 939,572 L 937,572 L 936,571 L 928,571 L 927,572 L 925,572 L 922,574 L 918,575 L 911,583 L 907,585 L 895,584 L 894,585 L 889,586 L 886,588 L 884,588 L 881,586 L 876,586 L 875,587 L 870,588 L 869,590 L 865,593 L 858,593 L 857,592 L 854,592 L 850,595 L 847,595 L 846,596 L 844,596 L 842,594 L 839,594 L 835,591 L 835,588 L 833,586 L 833,580 L 835,579 L 836,577 L 836,574 L 835,572 Z M 684,565 L 684,562 L 685,561 L 689,561 L 688,560 L 688,558 L 690,556 L 692,556 L 693,555 L 696,555 L 702,558 L 705,558 L 709,554 L 726,554 L 732,558 L 738,558 L 739,556 L 749,556 L 753,558 L 756,556 L 765,556 L 770,558 L 772,558 L 775,556 L 781,556 L 784,558 L 786,558 L 792,554 L 796,554 L 799,557 L 798,564 L 793,566 L 784,575 L 783,575 L 783,576 L 781,577 L 774,585 L 772,585 L 772,586 L 770,587 L 769,591 L 765,595 L 764,598 L 762,600 L 763,605 L 757,610 L 755,614 L 755,616 L 752,620 L 748,620 L 746,617 L 731,602 L 731,600 L 727,598 L 716,587 L 715,587 L 714,585 L 712,586 L 708,586 L 706,584 L 700,583 L 697,577 L 695,575 L 689,572 L 686,569 Z M 555,556 L 560,555 L 562,557 L 563,556 L 576,555 L 579,557 L 584,558 L 590,554 L 608,554 L 616,559 L 622,556 L 628,556 L 633,561 L 638,563 L 641,566 L 648,565 L 653,572 L 658,570 L 660,572 L 666,574 L 672,582 L 679,588 L 684,588 L 688,590 L 691,590 L 697,598 L 704,599 L 709,604 L 710,607 L 714,609 L 720,615 L 720,617 L 729,626 L 729,629 L 728,630 L 721,630 L 720,629 L 710,631 L 703,631 L 702,630 L 690,631 L 685,627 L 675,628 L 671,625 L 668,625 L 665,621 L 664,622 L 659,621 L 646,622 L 643,620 L 637,619 L 635,614 L 627,615 L 623,610 L 619,610 L 614,608 L 606,608 L 602,604 L 600,598 L 597,596 L 591,595 L 578,582 L 577,576 L 575,574 L 569,572 L 566,569 L 565,566 L 555,558 Z M 525,556 L 525,558 L 520,561 L 511,572 L 509,572 L 503,576 L 502,582 L 489,595 L 486,595 L 480,598 L 478,604 L 474,608 L 466,608 L 461,610 L 457,610 L 453,615 L 447,615 L 446,614 L 444,615 L 443,619 L 434,622 L 429,622 L 428,621 L 427,622 L 424,621 L 416,622 L 415,621 L 412,625 L 407,626 L 405,628 L 395,627 L 390,631 L 381,631 L 380,630 L 367,631 L 366,630 L 352,630 L 351,629 L 352,625 L 359,619 L 360,616 L 370,607 L 376,599 L 383,598 L 389,590 L 392,590 L 396,588 L 401,588 L 408,582 L 414,574 L 420,572 L 422,570 L 427,572 L 432,566 L 439,566 L 449,560 L 452,556 L 458,556 L 464,559 L 472,554 L 490,554 L 496,558 L 501,557 L 504,555 L 514,557 L 515,556 L 518,557 L 521,555 Z M 396,565 L 394,569 L 391,572 L 385,575 L 383,577 L 380,583 L 374,584 L 372,586 L 368,586 L 366,585 L 366,586 L 363,588 L 358,594 L 357,594 L 350,600 L 350,601 L 332,620 L 328,620 L 325,616 L 325,614 L 323,610 L 318,606 L 318,600 L 317,599 L 317,597 L 316,597 L 313,594 L 310,589 L 310,587 L 306,585 L 299,577 L 298,577 L 292,571 L 291,571 L 289,568 L 283,564 L 283,562 L 281,560 L 281,557 L 283,555 L 290,555 L 294,558 L 296,558 L 299,556 L 307,557 L 308,558 L 317,557 L 318,556 L 322,556 L 325,558 L 330,558 L 331,557 L 341,557 L 342,558 L 348,558 L 349,557 L 351,557 L 354,554 L 369,554 L 370,555 L 372,555 L 375,558 L 378,558 L 381,556 L 390,556 L 392,558 L 391,562 L 395,562 L 396,563 Z M 826,536 L 829,533 L 829,532 L 833,530 L 836,526 L 836,522 L 835,522 L 833,519 L 833,514 L 835,512 L 835,508 L 838,506 L 841,506 L 843,504 L 846,504 L 847,505 L 850,505 L 854,508 L 855,507 L 859,507 L 860,506 L 865,506 L 869,510 L 869,511 L 872,511 L 873,513 L 888,512 L 890,514 L 895,516 L 899,516 L 903,514 L 909,515 L 912,517 L 912,519 L 913,519 L 918,525 L 922,525 L 925,527 L 932,528 L 933,529 L 935,529 L 936,528 L 942,528 L 948,536 L 950,540 L 950,543 L 948,545 L 945,545 L 944,544 L 942,544 L 940,542 L 935,542 L 934,543 L 923,543 L 922,542 L 919,542 L 918,543 L 909,543 L 908,542 L 892,543 L 891,542 L 884,542 L 883,543 L 878,543 L 877,544 L 875,544 L 873,542 L 867,542 L 866,543 L 852,542 L 851,543 L 846,543 L 844,545 L 840,545 L 839,544 L 832,545 L 827,543 L 826,541 Z M 254,536 L 254,542 L 251,545 L 245,545 L 243,544 L 238,546 L 236,546 L 233,543 L 226,543 L 225,542 L 220,544 L 215,544 L 210,542 L 208,542 L 205,544 L 202,544 L 201,543 L 194,543 L 193,542 L 190,542 L 188,544 L 180,544 L 176,542 L 173,542 L 171,544 L 165,544 L 164,543 L 146,544 L 142,542 L 141,543 L 139,543 L 138,545 L 135,545 L 134,546 L 132,546 L 130,544 L 130,540 L 134,535 L 134,533 L 137,529 L 140,529 L 141,528 L 143,528 L 144,529 L 152,529 L 153,528 L 155,528 L 158,526 L 162,525 L 169,517 L 173,515 L 185,516 L 186,515 L 191,514 L 194,512 L 196,512 L 199,514 L 204,514 L 205,513 L 210,512 L 211,510 L 215,507 L 222,507 L 223,508 L 226,508 L 230,505 L 233,505 L 234,504 L 236,504 L 238,506 L 241,506 L 245,509 L 245,512 L 247,514 L 247,520 L 245,521 L 244,523 L 244,526 L 245,528 Z M 772,482 L 774,482 L 775,483 L 775,484 L 776,483 L 780,483 L 783,481 L 785,481 L 786,482 L 787,482 L 789,484 L 789,485 L 791,487 L 791,488 L 793,488 L 795,490 L 796,490 L 797,491 L 802,491 L 803,492 L 810,492 L 811,491 L 816,491 L 817,492 L 818,492 L 820,494 L 821,494 L 822,495 L 823,495 L 825,497 L 825,508 L 823,510 L 822,510 L 821,511 L 820,511 L 816,515 L 816,517 L 814,520 L 814,523 L 812,525 L 808,525 L 804,521 L 804,520 L 803,520 L 799,516 L 799,515 L 795,511 L 794,511 L 793,510 L 793,509 L 789,505 L 789,504 L 788,503 L 787,503 L 784,500 L 783,500 L 781,498 L 781,497 L 780,496 L 780,495 L 777,492 L 776,492 L 773,489 L 773,486 L 772,486 L 771,485 L 771,483 Z M 306,484 L 307,485 L 307,487 L 306,488 L 306,490 L 304,492 L 303,492 L 300,495 L 300,496 L 299,497 L 299,498 L 297,500 L 296,500 L 294,503 L 292,503 L 292,504 L 288,508 L 288,509 L 286,511 L 285,511 L 282,514 L 282,515 L 272,525 L 271,525 L 270,526 L 268,526 L 266,523 L 266,520 L 265,519 L 265,516 L 260,511 L 258,511 L 255,508 L 255,498 L 256,497 L 256,496 L 258,494 L 260,494 L 262,492 L 263,492 L 264,491 L 269,491 L 270,492 L 270,493 L 276,493 L 277,492 L 279,492 L 280,491 L 284,491 L 286,489 L 287,489 L 289,487 L 290,487 L 290,486 L 292,484 L 292,483 L 295,481 L 297,481 L 300,483 L 304,483 L 305,484 Z M 799,540 L 799,543 L 797,545 L 790,545 L 786,542 L 784,542 L 781,544 L 773,543 L 772,542 L 763,543 L 762,544 L 758,544 L 755,542 L 750,542 L 749,543 L 739,543 L 738,542 L 732,542 L 731,543 L 729,543 L 726,546 L 711,546 L 710,545 L 708,545 L 705,542 L 702,542 L 699,544 L 690,544 L 688,542 L 689,538 L 685,538 L 684,537 L 684,535 L 686,531 L 689,528 L 695,525 L 697,523 L 700,517 L 706,516 L 708,514 L 712,514 L 714,515 L 714,514 L 717,512 L 722,506 L 723,506 L 730,500 L 730,499 L 748,480 L 752,480 L 755,484 L 755,486 L 757,490 L 762,494 L 762,500 L 763,501 L 763,503 L 764,503 L 767,506 L 770,511 L 770,513 L 774,515 L 781,523 L 782,523 L 788,529 L 789,529 L 791,532 L 795,534 Z M 281,543 L 282,536 L 287,534 L 296,525 L 297,525 L 297,524 L 299,523 L 306,515 L 308,515 L 308,514 L 310,513 L 311,509 L 315,505 L 316,502 L 318,500 L 317,495 L 323,490 L 325,486 L 325,484 L 328,480 L 332,480 L 334,483 L 349,498 L 349,500 L 353,502 L 364,513 L 365,513 L 366,515 L 368,514 L 372,514 L 374,516 L 380,517 L 383,523 L 385,525 L 391,528 L 394,531 L 396,535 L 396,538 L 395,539 L 391,539 L 392,540 L 392,542 L 390,544 L 388,544 L 387,545 L 384,545 L 378,542 L 375,542 L 371,546 L 354,546 L 348,542 L 342,542 L 341,544 L 331,544 L 327,542 L 324,544 L 315,544 L 310,542 L 308,542 L 305,544 L 299,544 L 296,542 L 294,542 L 288,546 L 284,546 Z M 729,471 L 728,475 L 721,481 L 720,484 L 710,493 L 704,501 L 697,502 L 691,510 L 688,510 L 684,512 L 679,512 L 672,518 L 666,526 L 660,528 L 658,530 L 653,528 L 648,534 L 641,534 L 631,540 L 628,544 L 622,544 L 616,541 L 608,546 L 590,546 L 584,542 L 579,543 L 576,545 L 566,543 L 565,544 L 562,543 L 559,545 L 555,544 L 555,542 L 560,539 L 569,528 L 571,528 L 577,524 L 578,518 L 591,505 L 594,505 L 600,502 L 602,496 L 606,492 L 614,492 L 619,490 L 623,490 L 627,485 L 633,485 L 634,486 L 636,485 L 637,481 L 646,478 L 651,478 L 652,479 L 653,478 L 656,479 L 664,478 L 665,479 L 668,475 L 673,474 L 675,472 L 685,473 L 690,469 L 699,469 L 700,470 L 713,469 L 714,470 L 728,470 Z M 351,471 L 352,470 L 359,470 L 360,471 L 370,469 L 377,469 L 378,470 L 390,469 L 395,473 L 405,472 L 409,475 L 412,475 L 415,479 L 416,478 L 421,479 L 434,478 L 437,480 L 443,481 L 445,486 L 453,485 L 457,490 L 461,490 L 466,492 L 474,492 L 478,496 L 480,502 L 483,504 L 489,505 L 502,518 L 503,524 L 505,526 L 511,528 L 515,531 L 515,534 L 525,542 L 525,544 L 520,545 L 518,543 L 517,544 L 504,545 L 501,543 L 496,542 L 490,546 L 472,546 L 464,541 L 458,544 L 452,544 L 447,539 L 442,537 L 439,534 L 432,535 L 427,528 L 422,530 L 420,528 L 414,526 L 408,518 L 401,512 L 396,512 L 392,510 L 389,510 L 383,502 L 376,501 L 371,496 L 370,493 L 366,491 L 360,485 L 360,483 L 351,474 Z M 217,458 L 218,457 L 221,457 L 225,461 L 225,464 L 224,465 L 221,465 L 220,464 L 220,463 L 217,460 Z M 862,456 L 863,457 L 863,460 L 862,461 L 861,461 L 860,462 L 860,463 L 859,464 L 856,464 L 855,463 L 855,461 L 857,459 L 857,458 L 858,457 L 859,457 L 860,456 Z M 197,422 L 198,421 L 199,421 L 200,420 L 202,420 L 203,421 L 203,422 L 204,423 L 206,423 L 207,424 L 209,424 L 212,427 L 212,428 L 213,429 L 213,431 L 212,432 L 210,432 L 209,431 L 207,431 L 206,432 L 204,432 L 203,431 L 202,431 L 199,428 L 199,427 L 198,426 L 198,425 L 197,424 Z M 882,421 L 882,425 L 880,427 L 880,428 L 877,431 L 873,431 L 872,430 L 871,431 L 869,431 L 868,430 L 868,426 L 870,424 L 872,424 L 873,423 L 874,423 L 878,419 L 880,419 Z M 206,400 L 209,397 L 210,397 L 211,396 L 217,396 L 218,397 L 219,397 L 220,398 L 220,400 L 221,400 L 222,401 L 222,404 L 221,405 L 216,405 L 215,404 L 214,404 L 213,403 L 207,403 L 206,402 Z M 873,398 L 873,401 L 871,403 L 866,403 L 865,404 L 864,404 L 863,405 L 858,405 L 857,404 L 856,404 L 855,403 L 855,401 L 856,400 L 859,400 L 859,399 L 860,398 L 860,397 L 861,396 L 866,396 L 867,395 L 869,395 L 870,396 L 870,397 L 872,397 Z M 284,387 L 286,390 L 287,401 L 294,408 L 297,414 L 307,423 L 305,430 L 309,432 L 309,439 L 307,441 L 299,442 L 294,440 L 287,432 L 287,430 L 285,429 L 276,429 L 275,430 L 268,429 L 263,434 L 261,442 L 269,449 L 273,455 L 277,456 L 283,454 L 288,454 L 297,461 L 298,465 L 295,469 L 289,470 L 285,475 L 259,476 L 253,478 L 247,484 L 242,484 L 241,483 L 242,476 L 241,470 L 232,464 L 227,455 L 223,454 L 219,451 L 218,436 L 215,433 L 215,431 L 217,429 L 227,426 L 234,432 L 238,433 L 241,431 L 244,431 L 246,434 L 248,434 L 253,431 L 252,426 L 250,424 L 246,425 L 245,422 L 238,417 L 237,418 L 231,417 L 229,415 L 229,411 L 225,407 L 225,404 L 226,403 L 231,404 L 241,394 L 248,394 L 251,396 L 254,396 L 264,393 L 265,395 L 269,396 L 274,395 L 280,387 Z M 797,386 L 799,386 L 803,390 L 803,392 L 807,395 L 813,395 L 816,393 L 819,393 L 828,396 L 834,393 L 838,393 L 847,402 L 854,404 L 854,407 L 852,409 L 849,417 L 842,416 L 840,417 L 839,419 L 837,419 L 837,421 L 834,424 L 830,424 L 826,431 L 829,431 L 830,433 L 834,434 L 836,431 L 842,432 L 846,431 L 852,426 L 856,426 L 857,428 L 864,430 L 864,433 L 862,435 L 861,439 L 862,448 L 858,453 L 854,454 L 851,457 L 850,461 L 847,465 L 841,467 L 838,470 L 837,474 L 839,477 L 839,482 L 837,484 L 833,484 L 830,480 L 824,476 L 794,474 L 791,469 L 787,470 L 783,467 L 782,462 L 786,457 L 791,454 L 799,454 L 804,456 L 807,455 L 809,453 L 809,451 L 812,449 L 812,447 L 818,443 L 819,440 L 815,430 L 812,429 L 804,430 L 797,428 L 792,431 L 790,436 L 786,440 L 776,441 L 771,439 L 770,434 L 775,429 L 774,422 L 781,416 L 784,412 L 784,410 L 791,404 L 794,399 L 794,389 Z M 824,386 L 825,385 L 833,385 L 834,386 L 834,388 L 832,390 L 826,390 L 824,388 Z M 245,387 L 246,386 L 250,386 L 251,385 L 254,385 L 255,386 L 255,389 L 254,390 L 251,390 L 250,391 L 248,391 L 247,390 L 246,390 L 245,389 Z M 771,378 L 772,379 L 772,380 L 773,380 L 776,383 L 776,384 L 777,384 L 779,386 L 779,390 L 778,391 L 778,393 L 777,394 L 777,397 L 776,398 L 774,398 L 774,399 L 773,400 L 771,400 L 767,404 L 767,406 L 766,407 L 765,407 L 765,408 L 763,411 L 763,413 L 762,414 L 762,420 L 763,421 L 763,423 L 762,424 L 762,425 L 760,427 L 757,427 L 757,428 L 755,430 L 753,430 L 753,432 L 752,433 L 750,433 L 749,432 L 749,429 L 748,428 L 748,402 L 747,401 L 747,398 L 748,397 L 748,394 L 747,393 L 747,385 L 748,384 L 747,383 L 747,377 L 749,375 L 752,375 L 753,376 L 754,376 L 755,377 L 756,377 L 757,378 L 758,378 L 760,380 L 762,380 L 763,379 L 766,379 L 767,378 Z M 308,378 L 313,378 L 314,379 L 316,379 L 317,380 L 321,380 L 321,379 L 322,378 L 323,378 L 324,377 L 325,377 L 328,375 L 330,375 L 332,377 L 332,378 L 333,379 L 333,383 L 332,384 L 332,385 L 333,386 L 333,393 L 332,394 L 332,421 L 331,422 L 332,423 L 332,428 L 330,431 L 326,431 L 323,428 L 322,428 L 321,427 L 320,427 L 317,424 L 317,421 L 318,420 L 318,415 L 317,414 L 317,411 L 315,409 L 315,408 L 313,406 L 313,405 L 308,400 L 306,400 L 305,399 L 305,398 L 304,398 L 303,397 L 303,395 L 302,394 L 302,390 L 301,389 L 301,386 L 303,384 L 304,384 L 304,383 L 307,380 L 307,379 Z M 728,372 L 729,373 L 729,375 L 731,377 L 731,384 L 730,385 L 730,410 L 729,411 L 729,414 L 731,417 L 731,425 L 732,426 L 732,428 L 736,431 L 736,440 L 737,441 L 737,444 L 739,447 L 739,450 L 737,452 L 713,452 L 712,451 L 705,451 L 704,452 L 687,452 L 687,455 L 686,456 L 683,456 L 680,458 L 678,458 L 677,460 L 671,459 L 670,458 L 662,459 L 661,460 L 657,460 L 654,458 L 652,458 L 651,457 L 651,454 L 653,453 L 650,451 L 650,448 L 652,447 L 652,445 L 660,441 L 662,439 L 662,434 L 675,421 L 681,420 L 685,416 L 685,414 L 692,407 L 694,407 L 697,404 L 698,400 L 700,399 L 701,397 L 707,394 L 709,392 L 709,390 L 715,384 L 719,382 L 720,377 L 724,372 Z M 351,372 L 356,372 L 360,378 L 360,382 L 365,384 L 368,387 L 368,388 L 370,389 L 371,392 L 373,394 L 376,395 L 382,401 L 383,404 L 386,407 L 388,407 L 394,413 L 396,418 L 399,420 L 405,421 L 416,432 L 416,433 L 418,434 L 418,439 L 420,441 L 428,445 L 428,447 L 430,448 L 430,451 L 427,453 L 430,456 L 430,458 L 429,459 L 419,460 L 418,459 L 412,459 L 410,458 L 409,459 L 403,460 L 399,457 L 395,457 L 393,455 L 393,452 L 374,452 L 373,451 L 368,451 L 367,452 L 343,452 L 341,450 L 341,445 L 343,444 L 343,441 L 344,440 L 344,435 L 343,434 L 343,432 L 344,431 L 346,431 L 348,427 L 349,418 L 351,414 L 351,411 L 350,410 L 350,389 L 349,388 L 349,378 L 350,377 L 350,373 Z M 619,361 L 620,362 L 620,369 L 619,370 L 621,380 L 621,387 L 620,388 L 621,400 L 617,405 L 618,415 L 615,419 L 615,422 L 611,425 L 612,426 L 611,431 L 612,444 L 610,447 L 609,453 L 604,455 L 605,463 L 600,467 L 600,471 L 598,476 L 598,484 L 594,488 L 588,490 L 586,493 L 585,499 L 572,512 L 566,513 L 564,515 L 562,521 L 559,524 L 556,525 L 548,535 L 546,535 L 545,530 L 547,528 L 546,527 L 545,514 L 547,511 L 548,506 L 544,500 L 544,482 L 549,474 L 546,468 L 546,462 L 551,457 L 553,452 L 556,449 L 555,442 L 562,437 L 560,432 L 562,430 L 564,424 L 572,418 L 578,411 L 578,406 L 580,402 L 580,399 L 588,393 L 589,386 L 594,381 L 597,380 L 599,376 L 605,370 L 607,370 L 616,361 Z M 461,361 L 465,362 L 471,369 L 474,370 L 483,380 L 491,386 L 492,393 L 500,399 L 500,402 L 502,406 L 502,411 L 508,418 L 516,424 L 518,430 L 520,432 L 518,437 L 524,442 L 524,449 L 530,459 L 534,462 L 534,468 L 531,474 L 536,482 L 536,500 L 532,506 L 533,511 L 535,514 L 533,524 L 534,525 L 533,528 L 535,531 L 534,535 L 532,535 L 529,530 L 518,521 L 518,519 L 514,513 L 508,512 L 495,499 L 495,496 L 492,490 L 486,488 L 482,484 L 482,476 L 480,471 L 480,467 L 475,463 L 475,457 L 476,456 L 475,454 L 471,453 L 468,444 L 468,439 L 469,438 L 468,437 L 469,434 L 468,426 L 469,425 L 465,422 L 464,417 L 462,415 L 463,405 L 459,400 L 459,391 L 460,390 L 459,377 L 460,376 L 460,362 Z M 718,361 L 718,366 L 712,370 L 708,370 L 706,375 L 703,378 L 702,378 L 701,380 L 698,381 L 696,383 L 695,386 L 689,392 L 686,393 L 683,396 L 683,398 L 677,404 L 672,406 L 670,409 L 669,415 L 658,426 L 657,426 L 656,428 L 651,428 L 649,430 L 645,438 L 643,438 L 642,440 L 639,440 L 637,437 L 634,440 L 632,440 L 631,439 L 630,429 L 631,428 L 631,422 L 632,420 L 631,419 L 630,413 L 633,409 L 633,405 L 635,403 L 638,403 L 638,384 L 639,383 L 639,378 L 638,377 L 638,353 L 640,351 L 645,351 L 646,353 L 649,353 L 650,354 L 655,354 L 656,353 L 658,353 L 659,354 L 659,356 L 663,358 L 672,359 L 676,361 L 679,361 L 680,360 L 701,360 L 702,359 L 712,359 L 713,360 L 717,360 Z M 362,362 L 363,361 L 365,361 L 367,359 L 374,359 L 375,360 L 400,360 L 401,361 L 404,361 L 407,359 L 415,359 L 416,358 L 418,358 L 421,354 L 430,354 L 431,353 L 434,353 L 437,351 L 440,351 L 442,353 L 442,377 L 441,378 L 441,385 L 442,386 L 442,403 L 445,403 L 446,404 L 446,407 L 448,410 L 448,412 L 450,413 L 449,419 L 448,420 L 449,428 L 450,429 L 450,433 L 448,436 L 448,438 L 447,439 L 444,439 L 443,437 L 441,440 L 438,440 L 437,438 L 435,438 L 431,430 L 429,428 L 424,428 L 411,415 L 410,409 L 406,405 L 404,405 L 397,398 L 397,396 L 394,393 L 390,392 L 389,390 L 387,389 L 384,383 L 382,381 L 380,381 L 374,375 L 372,371 L 367,370 L 362,366 Z M 712,318 L 712,323 L 711,324 L 711,326 L 710,327 L 710,331 L 711,331 L 712,332 L 712,333 L 713,334 L 713,335 L 715,338 L 715,340 L 713,342 L 712,342 L 711,343 L 707,343 L 706,342 L 705,342 L 704,343 L 697,343 L 696,342 L 669,343 L 668,341 L 667,342 L 662,342 L 659,340 L 659,336 L 662,333 L 662,332 L 663,331 L 663,330 L 666,327 L 669,327 L 670,328 L 675,328 L 676,327 L 679,327 L 681,325 L 682,325 L 684,323 L 685,323 L 690,318 L 690,316 L 691,315 L 692,315 L 692,314 L 693,313 L 695,313 L 696,312 L 700,312 L 701,311 L 704,311 L 706,313 L 706,314 L 707,314 L 710,317 L 711,317 Z M 368,319 L 369,318 L 370,318 L 370,317 L 373,314 L 374,314 L 374,313 L 376,311 L 380,311 L 381,312 L 383,312 L 384,313 L 387,313 L 388,314 L 388,316 L 389,316 L 390,317 L 390,319 L 394,323 L 396,323 L 397,324 L 397,325 L 398,325 L 401,327 L 403,327 L 404,328 L 410,328 L 411,327 L 413,327 L 414,328 L 415,328 L 417,330 L 417,333 L 418,333 L 420,335 L 420,337 L 422,337 L 423,338 L 423,340 L 422,341 L 419,341 L 418,342 L 392,342 L 391,343 L 388,343 L 387,342 L 384,342 L 383,343 L 375,343 L 374,342 L 373,343 L 367,343 L 365,341 L 365,338 L 366,337 L 366,336 L 367,335 L 367,334 L 368,333 L 368,332 L 370,330 L 370,328 L 369,327 L 369,324 L 368,323 Z M 547,291 L 554,292 L 556,297 L 565,306 L 565,307 L 566,307 L 567,309 L 575,316 L 575,318 L 576,318 L 577,320 L 581,321 L 585,325 L 588,326 L 590,328 L 595,327 L 600,333 L 604,335 L 606,335 L 610,338 L 610,342 L 607,344 L 592,359 L 590,359 L 588,363 L 577,374 L 577,375 L 575,376 L 576,378 L 576,382 L 574,384 L 573,390 L 567,393 L 565,395 L 562,401 L 559,404 L 555,406 L 552,406 L 551,405 L 551,401 L 550,402 L 548,402 L 546,400 L 546,398 L 545,397 L 545,394 L 548,388 L 548,385 L 544,381 L 544,364 L 548,358 L 548,352 L 546,351 L 546,341 L 548,337 L 546,334 L 546,325 L 548,320 L 548,318 L 546,315 L 546,309 L 548,306 L 548,304 L 544,298 L 544,294 Z M 533,291 L 535,293 L 535,300 L 532,304 L 532,306 L 534,309 L 533,317 L 532,318 L 533,327 L 534,328 L 534,332 L 532,335 L 532,340 L 533,341 L 533,351 L 532,352 L 532,358 L 533,359 L 533,361 L 536,364 L 536,379 L 535,380 L 535,382 L 532,385 L 532,388 L 534,391 L 534,400 L 532,402 L 528,401 L 528,405 L 527,406 L 525,406 L 521,404 L 518,401 L 515,395 L 513,393 L 507,390 L 506,384 L 504,382 L 504,378 L 505,376 L 504,376 L 502,373 L 496,368 L 496,367 L 490,360 L 489,360 L 470,342 L 470,338 L 474,335 L 476,335 L 480,333 L 484,328 L 490,328 L 491,327 L 493,327 L 493,326 L 496,323 L 501,320 L 503,320 L 505,316 L 513,309 L 513,308 L 519,302 L 519,301 L 522,299 L 526,293 L 528,293 L 530,291 Z M 835,265 L 838,270 L 839,281 L 835,285 L 834,285 L 828,293 L 828,296 L 825,300 L 825,314 L 822,318 L 819,319 L 816,322 L 815,322 L 815,324 L 812,331 L 809,334 L 807,334 L 807,335 L 803,338 L 802,340 L 802,343 L 800,344 L 801,346 L 801,350 L 798,354 L 796,354 L 795,356 L 793,356 L 791,359 L 791,363 L 789,364 L 789,366 L 787,368 L 784,368 L 782,370 L 778,370 L 771,367 L 769,364 L 769,362 L 767,358 L 764,356 L 763,357 L 757,357 L 756,358 L 752,358 L 750,357 L 748,354 L 748,349 L 749,347 L 753,345 L 758,338 L 762,338 L 763,336 L 769,333 L 770,329 L 775,324 L 777,324 L 777,323 L 781,320 L 781,318 L 786,313 L 791,310 L 793,308 L 793,306 L 799,300 L 805,296 L 805,294 L 816,284 L 822,276 L 824,276 L 827,274 L 830,266 L 831,265 Z M 582,265 L 592,265 L 593,266 L 594,266 L 596,268 L 596,270 L 598,272 L 598,273 L 599,274 L 599,279 L 598,280 L 597,280 L 597,286 L 598,287 L 598,289 L 599,290 L 599,294 L 601,296 L 601,297 L 603,299 L 603,300 L 604,300 L 606,302 L 607,302 L 609,305 L 609,307 L 607,310 L 607,314 L 605,317 L 603,317 L 602,316 L 600,316 L 598,314 L 598,313 L 595,310 L 594,310 L 593,309 L 592,309 L 590,307 L 590,306 L 587,304 L 587,302 L 586,302 L 582,298 L 581,298 L 579,296 L 579,295 L 576,292 L 575,292 L 565,282 L 565,281 L 564,280 L 564,278 L 565,277 L 566,277 L 567,276 L 570,276 L 571,275 L 574,275 L 579,270 L 579,268 Z M 498,265 L 500,267 L 500,268 L 501,269 L 501,270 L 505,274 L 507,274 L 510,276 L 513,276 L 515,282 L 511,286 L 510,286 L 510,287 L 506,291 L 505,291 L 501,295 L 501,296 L 500,297 L 499,297 L 495,301 L 494,301 L 493,302 L 493,303 L 490,306 L 490,307 L 488,309 L 487,309 L 486,310 L 485,310 L 482,313 L 482,314 L 479,317 L 476,317 L 476,318 L 475,319 L 473,319 L 472,318 L 472,316 L 473,315 L 474,315 L 473,314 L 473,310 L 471,307 L 471,305 L 472,304 L 472,303 L 474,301 L 475,301 L 477,299 L 478,299 L 478,297 L 480,295 L 480,294 L 481,293 L 481,288 L 482,287 L 482,280 L 481,279 L 481,274 L 482,273 L 482,272 L 484,270 L 484,269 L 485,268 L 485,267 L 487,265 Z M 245,265 L 248,265 L 250,267 L 250,269 L 252,271 L 253,275 L 258,277 L 259,279 L 260,279 L 261,281 L 263,282 L 264,286 L 270,290 L 274,294 L 275,297 L 276,297 L 277,299 L 282,301 L 287,307 L 287,309 L 288,309 L 289,311 L 292,312 L 299,318 L 299,321 L 300,321 L 301,323 L 307,326 L 307,327 L 310,330 L 311,333 L 312,333 L 319,339 L 320,338 L 322,338 L 323,339 L 323,341 L 326,344 L 326,345 L 328,345 L 332,350 L 332,354 L 328,358 L 315,357 L 312,359 L 312,362 L 310,366 L 308,367 L 307,369 L 303,369 L 302,370 L 298,370 L 295,368 L 293,368 L 291,365 L 289,364 L 289,360 L 286,356 L 280,353 L 279,351 L 279,346 L 280,345 L 278,344 L 278,341 L 273,335 L 268,333 L 265,323 L 260,319 L 258,319 L 254,313 L 254,311 L 255,310 L 255,300 L 252,297 L 251,293 L 247,287 L 241,282 L 242,270 Z M 376,256 L 378,256 L 380,258 L 380,264 L 378,266 L 376,266 L 375,265 L 375,257 Z M 701,255 L 703,255 L 704,256 L 704,260 L 705,261 L 705,264 L 704,265 L 701,265 L 700,264 L 700,261 L 699,260 L 699,258 L 700,257 L 700,256 Z M 825,255 L 825,258 L 823,260 L 821,260 L 819,262 L 815,263 L 813,268 L 811,269 L 811,270 L 809,271 L 808,273 L 804,274 L 800,280 L 796,284 L 793,285 L 793,286 L 791,287 L 789,292 L 783,297 L 781,297 L 781,298 L 779,299 L 778,302 L 772,309 L 769,309 L 769,310 L 767,311 L 764,317 L 763,317 L 760,320 L 757,321 L 757,322 L 751,329 L 752,330 L 752,332 L 751,333 L 749,333 L 746,336 L 745,336 L 745,338 L 740,342 L 736,342 L 732,338 L 733,325 L 731,322 L 728,322 L 724,320 L 723,318 L 721,317 L 721,313 L 720,312 L 720,308 L 722,305 L 722,303 L 725,301 L 726,299 L 730,299 L 734,296 L 737,290 L 739,289 L 744,289 L 745,290 L 746,288 L 749,288 L 755,283 L 757,278 L 767,275 L 771,270 L 771,268 L 777,264 L 779,264 L 780,265 L 790,265 L 793,262 L 797,261 L 803,257 L 808,251 L 820,252 Z M 255,255 L 260,252 L 271,251 L 275,255 L 275,256 L 283,262 L 286,262 L 290,265 L 304,265 L 308,268 L 309,271 L 312,274 L 312,275 L 314,275 L 317,277 L 321,278 L 324,281 L 324,283 L 325,283 L 328,287 L 330,288 L 333,288 L 334,290 L 336,289 L 340,289 L 344,292 L 344,294 L 346,295 L 346,297 L 349,299 L 353,299 L 354,301 L 356,301 L 358,303 L 358,306 L 360,308 L 360,312 L 357,319 L 354,321 L 352,321 L 348,323 L 346,326 L 347,327 L 347,333 L 348,334 L 348,338 L 347,340 L 344,342 L 339,342 L 337,341 L 335,337 L 328,332 L 328,328 L 326,327 L 323,321 L 319,320 L 314,315 L 314,313 L 313,313 L 310,309 L 308,309 L 303,304 L 300,299 L 298,297 L 296,297 L 290,291 L 286,285 L 284,285 L 274,274 L 266,268 L 266,266 L 264,263 L 256,260 L 255,259 Z M 632,227 L 633,228 L 633,231 L 629,235 L 626,235 L 625,234 L 625,231 L 626,230 L 627,230 L 630,227 Z M 446,228 L 447,227 L 450,227 L 451,228 L 451,229 L 452,230 L 453,230 L 454,231 L 454,234 L 453,235 L 451,235 L 449,233 L 448,233 L 447,232 L 447,231 L 446,230 Z M 420,226 L 423,226 L 425,28 L 429,229 L 438,228 L 443,232 L 444,236 L 447,239 L 451,240 L 455,243 L 457,249 L 460,252 L 464,253 L 467,251 L 472,251 L 474,253 L 474,257 L 470,260 L 466,266 L 464,296 L 459,299 L 460,303 L 457,307 L 452,308 L 447,304 L 444,299 L 444,291 L 446,286 L 445,283 L 443,281 L 441,281 L 439,278 L 437,278 L 433,272 L 430,271 L 420,275 L 419,278 L 420,286 L 418,293 L 421,298 L 426,300 L 430,304 L 431,309 L 430,318 L 426,320 L 422,319 L 419,315 L 412,316 L 406,309 L 402,306 L 400,306 L 394,299 L 389,296 L 379,296 L 376,293 L 376,291 L 380,287 L 382,287 L 385,283 L 385,277 L 383,274 L 383,271 L 386,262 L 383,256 L 383,252 L 392,243 L 394,236 L 397,236 L 399,238 L 407,241 L 406,248 L 407,250 L 409,251 L 409,253 L 411,253 L 414,256 L 414,260 L 421,264 L 421,261 L 423,260 L 424,256 L 421,254 L 422,248 L 421,244 L 416,238 L 416,234 L 418,233 Z M 659,225 L 661,227 L 664,237 L 659,242 L 657,248 L 659,251 L 659,254 L 656,256 L 659,263 L 664,262 L 666,260 L 665,256 L 671,252 L 673,248 L 672,247 L 673,241 L 675,239 L 679,239 L 683,235 L 686,235 L 687,236 L 686,241 L 696,251 L 696,258 L 694,261 L 694,264 L 697,274 L 695,275 L 694,279 L 695,284 L 703,290 L 703,294 L 700,296 L 689,297 L 682,304 L 676,307 L 667,317 L 660,315 L 658,319 L 651,319 L 649,317 L 648,309 L 650,304 L 658,297 L 660,297 L 661,295 L 661,286 L 660,285 L 661,278 L 660,276 L 654,272 L 650,271 L 646,272 L 645,275 L 641,279 L 638,280 L 634,285 L 636,293 L 636,298 L 634,300 L 634,302 L 629,307 L 625,308 L 621,305 L 620,299 L 615,295 L 614,269 L 612,263 L 606,257 L 606,252 L 607,251 L 614,252 L 620,251 L 626,242 L 635,237 L 636,233 L 639,229 L 654,228 L 657,225 Z M 388,217 L 391,217 L 393,219 L 393,224 L 394,225 L 394,226 L 395,227 L 395,232 L 394,233 L 394,234 L 393,235 L 391,235 L 390,234 L 390,231 L 389,231 L 388,230 L 387,230 L 386,229 L 386,224 L 385,223 L 385,221 L 386,220 L 387,220 L 387,218 Z M 688,216 L 690,216 L 693,219 L 693,220 L 694,221 L 694,227 L 693,228 L 693,229 L 692,230 L 690,230 L 690,231 L 689,232 L 686,232 L 685,231 L 685,226 L 686,225 L 686,224 L 687,223 L 687,217 Z M 411,208 L 415,208 L 417,210 L 418,210 L 421,213 L 421,217 L 420,218 L 421,219 L 421,221 L 420,222 L 416,222 L 414,220 L 414,218 L 413,217 L 413,216 L 409,212 L 409,210 Z M 668,207 L 669,208 L 669,209 L 670,210 L 670,212 L 669,213 L 668,213 L 667,214 L 667,216 L 666,217 L 666,219 L 663,222 L 662,222 L 661,223 L 659,223 L 658,222 L 658,220 L 659,219 L 659,217 L 658,216 L 658,214 L 659,213 L 659,212 L 662,209 L 663,209 L 664,208 L 665,208 L 666,207 Z M 546,140 L 550,140 L 555,144 L 557,144 L 561,147 L 561,150 L 562,151 L 562,153 L 561,154 L 561,162 L 562,163 L 562,165 L 564,168 L 565,172 L 573,179 L 575,183 L 574,195 L 575,196 L 576,201 L 578,204 L 578,206 L 576,209 L 576,214 L 577,215 L 578,220 L 580,221 L 583,225 L 583,232 L 582,233 L 582,236 L 585,240 L 585,243 L 586,244 L 586,246 L 584,248 L 584,251 L 581,255 L 578,255 L 576,257 L 570,257 L 569,255 L 567,254 L 564,254 L 562,255 L 554,264 L 548,264 L 545,261 L 545,255 L 546,253 L 544,248 L 544,246 L 547,243 L 547,236 L 548,235 L 546,230 L 546,225 L 548,220 L 548,218 L 546,215 L 546,212 L 547,211 L 547,204 L 548,203 L 548,200 L 546,198 L 546,190 L 548,186 L 548,183 L 546,181 L 546,175 L 547,174 L 546,156 L 548,152 L 547,151 L 547,149 L 545,148 L 545,145 L 544,144 L 544,142 Z M 533,140 L 535,142 L 535,145 L 534,146 L 534,148 L 532,150 L 532,155 L 533,156 L 533,167 L 532,168 L 532,171 L 533,172 L 533,181 L 532,182 L 533,198 L 532,199 L 532,206 L 533,207 L 533,212 L 534,213 L 534,215 L 532,217 L 532,223 L 533,224 L 532,238 L 533,239 L 533,244 L 535,246 L 535,250 L 534,251 L 535,258 L 533,263 L 531,264 L 526,264 L 523,261 L 522,261 L 520,257 L 516,254 L 512,254 L 512,255 L 509,257 L 504,257 L 502,255 L 498,255 L 496,252 L 496,249 L 494,247 L 494,244 L 495,243 L 495,240 L 498,236 L 497,235 L 497,231 L 496,230 L 496,225 L 500,221 L 501,221 L 501,218 L 503,217 L 502,202 L 504,200 L 506,195 L 506,191 L 504,187 L 505,181 L 507,178 L 509,178 L 509,177 L 515,172 L 515,168 L 517,165 L 518,158 L 519,157 L 519,155 L 518,154 L 518,148 L 526,142 L 530,140 Z"
               />
-            </svg>
-            <span className="font-serif font-bold text-3xl text-black">HELIOS</span>
+          </svg>
+          <span className="font-serif font-bold text-3xl text-black">HELIOS</span>
+        </div>
+        <div className="text-sm font-mono uppercase tracking-[0.35em] text-[#F27D26]">
+          The Sun Is Rising
+        </div>
+
+        <div className="flex flex-col items-center gap-5 text-sm font-mono font-bold uppercase tracking-wider text-zinc-500">
+          <div className="flex flex-wrap gap-8 justify-center">
+            <NavLink to="/research" className="hover:text-black transition-colors cursor-pointer">Research</NavLink>
+            <NavLink to="/docs" className="hover:text-black transition-colors cursor-pointer">Docs</NavLink>
+            <NavLink to="/papers" className="hover:text-black transition-colors cursor-pointer">Papers</NavLink>
+            <NavLink to="/about" className="hover:text-black transition-colors cursor-pointer">About US</NavLink>
           </div>
-          <div className="text-sm font-mono uppercase tracking-[0.35em] text-[#F27D26]">
-            The Sun Is Rising
+          <div className="flex flex-wrap gap-8 justify-center mt-2">
+            <a
+              href="https://github.com/Helios-4U"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-black transition-colors cursor-pointer"
+            >
+              <Github className="w-4 h-4" />
+              GitHub
+            </a>
+            <a
+              href="https://huggingface.co/Helios4U"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-black transition-colors cursor-pointer"
+            >
+              Hugging Face
+            </a>
           </div>
-          
-          <div className="flex flex-col items-center gap-5 text-sm font-mono font-bold uppercase tracking-wider text-zinc-500">
-            <div className="flex flex-wrap gap-8 justify-center">
-              <button onClick={() => navigateToPage("research")} className="hover:text-black transition-colors cursor-pointer">Research</button>
-              <button onClick={() => navigateToPage("docs")} className="hover:text-black transition-colors cursor-pointer">Docs</button>
-              <button onClick={() => navigateToPage("papers")} className="hover:text-black transition-colors cursor-pointer">Papers</button>
-              <button onClick={() => navigateToPage("about")} className="hover:text-black transition-colors cursor-pointer">Company</button>
-            </div>
-            <div className="text-xs text-zinc-400 font-mono tracking-wide font-normal lowercase">
-              &copy; 2026 helios systems inc. all rights reserved.
-            </div>
+          <div className="text-xs text-zinc-400 font-mono tracking-wide font-normal lowercase">
+            &copy; 2026 helios systems inc. all rights reserved.
           </div>
         </div>
-      </footer>
+      </div>
+    </footer>
+  );
+}
+
+export default function App() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 30);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 font-sans relative overflow-x-clip flex flex-col">
+      <ScrollToTop />
+      <Header scrolled={scrolled} />
+
+      {/* Active Page Route Rendering */}
+      <main className="flex-grow flex flex-col">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/models" element={<ModelExplorer />} />
+          <Route path="/research" element={<ResearchView />} />
+          <Route path="/papers" element={<PapersView />} />
+          <Route path="/docs" element={<DocsView />} />
+          <Route path="/about" element={<AboutView />} />
+          <Route path="/manifesto" element={<Manifesto />} />
+          <Route path="/research/:slug" element={<PaperDetail category="research" />} />
+          <Route path="/papers/:slug" element={<PaperDetail category="papers" />} />
+          <Route path="/docs/:slug" element={<PaperDetail category="docs" />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+
+      <Footer />
     </div>
   );
 }

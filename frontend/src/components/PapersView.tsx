@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
-import { FileText, ArrowRight, AlertTriangle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, AlertTriangle } from "lucide-react";
 import { fetchPapers, formatDate, type PaperListItem } from "../api";
 import Loading from "./Loading";
 
-interface PapersViewProps {
-  onOpenPaper: (slug: string) => void;
-}
-
-export default function PapersView({ onOpenPaper }: PapersViewProps) {
+export default function PapersView() {
   const [papers, setPapers] = useState<PaperListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +38,7 @@ export default function PapersView({ onOpenPaper }: PapersViewProps) {
         <p className="text-zinc-500 font-sans md:text-lg max-w-xl mx-auto">Peer-reviewed manuscripts and technical reports submitted to leading machine learning conferences.</p>
       </div>
 
-      {loading && <Loading label="Loading publications..." />}
+      {loading && <Loading />}
 
       {error && (
         <div className="flex items-center gap-3 text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-4 max-w-xl mx-auto">
@@ -60,25 +57,17 @@ export default function PapersView({ onOpenPaper }: PapersViewProps) {
       {!loading && !error && papers.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {papers.map((paper) => (
-            <button
+            <Link
               key={paper.slug}
-              onClick={() => onOpenPaper(paper.slug)}
+              to={`/papers/${paper.slug}`}
               className="text-left p-6 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between hover:border-[#F27D26]/40 transition-all shadow-sm cursor-pointer group"
             >
               <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2.5 bg-zinc-50 border border-zinc-200 text-[#F27D26] rounded">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <span className="text-[9px] font-mono text-zinc-400 uppercase font-semibold">
-                      {formatDate(paper.created_at)}
-                    </span>
-                    <span className="text-[10px] font-mono text-emerald-600 block">{paper.category}</span>
-                  </div>
-                </div>
+                <span className="text-[9px] font-mono text-zinc-400 uppercase font-semibold">
+                  {formatDate(paper.created_at)}
+                </span>
 
-                <h3 className="font-serif text-lg text-zinc-950 font-bold leading-snug mb-1">{paper.title}</h3>
+                <h3 className="font-serif text-lg text-zinc-950 font-bold leading-snug mb-1 mt-1">{paper.title}</h3>
                 <p className="text-sm text-zinc-600 font-sans leading-relaxed">{paper.description}</p>
               </div>
 
@@ -87,7 +76,7 @@ export default function PapersView({ onOpenPaper }: PapersViewProps) {
                   Read Publication <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                 </span>
               </div>
-            </button>
+            </Link>
           ))}
         </div>
       )}

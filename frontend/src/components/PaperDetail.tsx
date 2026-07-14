@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import Markdown from "./Markdown";
 import Loading from "./Loading";
@@ -6,8 +7,7 @@ import { fetchPaper, formatDate, type Paper } from "../api";
 
 interface PaperDetailProps {
   category: string;
-  slug: string;
-  onBack: () => void;
+  slug?: string;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -16,11 +16,9 @@ const CATEGORY_LABELS: Record<string, string> = {
   docs: "Docs",
 };
 
-export default function PaperDetail({
-  category,
-  slug,
-  onBack,
-}: PaperDetailProps) {
+export default function PaperDetail({ category, slug }: PaperDetailProps) {
+  const params = useParams();
+  const paperSlug = slug ?? params.slug ?? "";
   const [paper, setPaper] = useState<Paper | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +27,7 @@ export default function PaperDetail({
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchPaper(slug)
+    fetchPaper(paperSlug)
       .then((p) => {
         if (!cancelled) {
           setPaper(p);
@@ -51,26 +49,26 @@ export default function PaperDetail({
 
   return (
     <div className="max-w-3xl mx-auto w-full px-6 md:px-12 py-12">
-      <button
-        onClick={onBack}
+      <Link
+        to={`/${category}`}
         className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-500 hover:text-[#F27D26] transition-colors cursor-pointer mb-8 flex items-center gap-2"
       >
         <ArrowLeft className="w-4 h-4" /> Back to {label}
-      </button>
+      </Link>
 
-      {loading && <Loading label="Loading..." />}
+      {loading && <Loading />}
 
       {error && (
         <div className="flex items-start gap-3 text-rose-700 bg-rose-50 border border-rose-200 rounded-lg p-4">
           <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-bold font-mono">{error}</p>
-            <button
-              onClick={onBack}
+            <Link
+              to={`/${category}`}
               className="text-xs font-mono text-zinc-500 hover:text-zinc-900 mt-2 underline cursor-pointer"
             >
               ← Back
-            </button>
+            </Link>
           </div>
         </div>
       )}

@@ -20,6 +20,8 @@ This repository contains the marketing/landing site, built with **React 19 + Vit
 
 No TypeScript yet — plain JSX with a minimal ESLint setup.
 
+> **Note:** The frontend `frontend/` is a separate, TypeScript + Tailwind + `react-router-dom` app and is the one currently deployed. The root `README`/structure below describes the original marketing landing page; see `z.md` for the deployed app's architecture (real URL routing under `/`, `/models`, `/research`, `/papers`, `/docs`, `/about`, `/manifesto`, and `/{research|papers|docs}/:slug`).
+
 ## Project Structure
 
 ```
