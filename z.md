@@ -45,6 +45,7 @@ Helios/
     ├── README.md
     ├── public/
     │   ├── favicon.png
+    │   ├── bglicon.png           # Helios logo raster asset (1024x1024)
     │   ├── fonts/                # Self-hosted Minecraft webfonts
     │   │   ├── Minecraft-Regular.woff
     │   │   ├── Minecraft-Italic.woff
@@ -90,7 +91,7 @@ Helios/
 - **Fonts:** Minecraft (self-hosted `.woff`, preloaded)
 
 ### Navigation (App.tsx)
-State-driven pages (no URL routing): `home`, `models`, `research`, `papers`, `docs`, `about`, `manifesto`. The header is a sticky `HELIOS` wordmark that **collapses to "HI" on scroll** — the middle letters (E, L, O, S) fade and collapse width while H and I remain (Anthropic-style). The footer shows `HELIOS` + the "The Sun Is Rising" tagline; nav links are Research / Docs / Papers / Company (About). There is no Twitter/X link.
+State-driven pages (no URL routing): `home`, `models`, `research`, `papers`, `docs`, `about`, `manifesto`. The header is a sticky `HELIOS` wordmark that **collapses to "HI" on scroll** — the middle letters (E, L, O, S) fade and collapse width while H and I remain (Anthropic-style). The footer shows an **inline SVG Helios logo** (rendered at `h-14 w-14`, ~56px) placed inline **before** the `HELIOS` text on the same flex row, followed by the "The Sun Is Rising" tagline; nav links are Research / Docs / Papers / Company (About). There is no Twitter/X link.
 
 ### Views
 | View | Component | Description |
@@ -382,6 +383,12 @@ cd backend && npx tsc --noEmit
 - **Loading animation (`src/components/Loading.tsx`):** DotLottie (`public/animation/loading.lottie`) with self-hosted `public/dotlottie-player.wasm` via `setWasmUrl`; replaces the old `Loader2` spinners in all four loading states
 - **About copy:** "founded in late 2024" → "founded in early 2026"
 - **Build/lint:** `npm run lint` runs `tsc --noEmit`; removed `eslint.config.js`
+
+### Phase 12 — Footer Inline SVG Logo
+- Replaced the footer `HELIOS` plain-text wordmark (and an earlier `bglicon.png` `<img>` attempt that rendered blurry) with an **inline `<svg>` of the Helios logo** in `frontend/src/App.tsx`.
+- The SVG uses `viewBox="0 0 1080 1080"`, `fill="#111111"`, and is rendered at `h-14 w-14` (~56px), placed inline **before** the `HELIOS` text on the same flex row (`flex items-center gap-3`).
+- Inline vector keeps the logo crisp at any size (no raster blur from downscaling a PNG).
+- Added `frontend/public/bglicon.png` (1024×1024 Helios logo raster asset) to `public/` as a standalone asset.
 
 ---
 
