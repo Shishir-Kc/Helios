@@ -1,39 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Shield, Compass, Sparkles, Check, Send } from "lucide-react";
+import React from "react";
+import { Shield, Compass, Sparkles } from "lucide-react";
 
 export default function Manifesto() {
-  const [signature, setSignature] = useState("");
-  const [signedList, setSignedList] = useState<string[]>([]);
-  const [hasSigned, setHasSigned] = useState(false);
-
-  useEffect(() => {
-    const savedSignatures = localStorage.getItem("helios_signatures");
-    if (savedSignatures) {
-      setSignedList(JSON.parse(savedSignatures));
-    } else {
-      const initial = ["vance.eth", "thorne.sh", "null_kernel", "pixel_craft"];
-      setSignedList(initial);
-      localStorage.setItem("helios_signatures", JSON.stringify(initial));
-    }
-
-    const signed = localStorage.getItem("helios_user_signed");
-    if (signed) {
-      setHasSigned(true);
-    }
-  }, []);
-
-  const handleSign = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!signature.trim()) return;
-
-    const newList = [...signedList, signature.trim()];
-    setSignedList(newList);
-    localStorage.setItem("helios_signatures", JSON.stringify(newList));
-    localStorage.setItem("helios_user_signed", "true");
-    setHasSigned(true);
-    setSignature("");
-  };
-
   return (
     <div className="max-w-4xl mx-auto w-full px-6 md:px-12 py-12 space-y-12">
       {/* Manifesto Title */}
@@ -116,53 +84,8 @@ export default function Manifesto() {
           </p>
         </section>
 
-        <div className="pt-8 text-center font-serif text-zinc-900 italic text-lg">
-          "Join us in reclaiming the decentralized mind."
-        </div>
       </div>
 
-      {/* Signature Module (Interactive Offline Component) */}
-      <div className="p-6 md:p-8 bg-zinc-50 border border-zinc-200 rounded-lg space-y-6">
-        <div>
-          <h3 className="font-serif text-xl text-zinc-950 font-bold">Sign the Manifesto</h3>
-          <p className="text-xs text-zinc-500 mt-1">Commit to local data sovereignty. Signatures are persisted 100% locally on your browser cache.</p>
-        </div>
-
-        {hasSigned ? (
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded text-emerald-800 text-sm font-mono flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span>Thank you for supporting decentralization. Your local signature is cataloged.</span>
-          </div>
-        ) : (
-          <form onSubmit={handleSign} className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Enter your alias or name..."
-              value={signature}
-              onChange={(e) => setSignature(e.target.value)}
-              className="flex-1 px-4 py-2.5 border border-zinc-300 rounded focus:outline-none focus:ring-1 focus:ring-[#F27D26] focus:border-[#F27D26] bg-white text-sm"
-              maxLength={25}
-            />
-            <button
-              type="submit"
-              className="bg-zinc-950 hover:bg-[#F27D26] hover:text-white text-white px-5 py-2 rounded text-xs uppercase tracking-wider font-bold transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              Sign <Send className="w-3.5 h-3.5" />
-            </button>
-          </form>
-        )}
-
-        <div className="border-t border-zinc-200 pt-4">
-          <span className="block text-[10px] text-zinc-400 uppercase tracking-widest font-mono mb-2">Sovereign Signers Offline Ledger</span>
-          <div className="flex flex-wrap gap-2">
-            {signedList.map((name, idx) => (
-              <span key={idx} className="bg-white border border-zinc-200 px-2.5 py-1 text-xs rounded font-mono text-zinc-600">
-                ✍️ {name}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
