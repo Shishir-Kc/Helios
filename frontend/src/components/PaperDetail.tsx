@@ -75,6 +75,18 @@ export default function PaperDetail({ category, slug }: PaperDetailProps) {
 
       {paper && (
         <article>
+          {paper.image_url && (
+            <div className="px-6 md:px-12">
+              <div className="relative mx-auto max-w-5xl w-full h-56 md:h-72 mb-8 overflow-hidden rounded-2xl bg-zinc-900">
+                <img
+                  src={paper.image_url}
+                  alt={paper.title}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </div>
+            </div>
+          )}
+
           <span className="inline-block text-[10px] font-mono font-bold uppercase tracking-widest text-[#F27D26] bg-[#F27D26]/10 border border-[#F27D26]/20 px-2.5 py-1 rounded mb-4">
             {label}
           </span>

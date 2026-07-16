@@ -436,6 +436,42 @@ cd backend && npx tsc --noEmit
 - Both styled to match existing footer links (`font-mono uppercase tracking-wider text-zinc-500 hover:text-black`).
 - Lint + build pass; deployed to Cloudflare Pages (`helios` project).
 
+### Phase 16 — Models Hub (Image Cards → Dedicated Model Page)
+- **Decision:** Reuse the existing `papers` table with a new `models` category (no new table/endpoints). Model banner/card image is a **URL string** (`image_url`) entered in Studio. Model spec (params, required hardware, etc.) and Hugging Face / GitHub links live **inside the markdown `content`** body (rendered by the shared `Markdown` component) — no dedicated schema columns.
+- **Migration `backend/migrations/0003_add_image_url.sql`:** `ALTER TABLE papers ADD COLUMN image_url TEXT;`
+- **Backend `db.ts`:** Added `image_url` to `Paper` / `PaperListItem` / `CreatePaperInput` / `UpdatePaperInput`; included `image_url` in `getAllPapers` / `getPapersByCategory` SELECT lists; bound `image_url` in `createPaper` INSERT and `updatePaper` dynamic SET. Added `'models'` to `VALID_CATEGORIES` (in `db.ts`; `index.ts` validates via `isValidCategory`).
+- **Frontend `api.ts`:** Added `image_url?` to `PaperListItem` / `Paper`; added `fetchModels()` helper (= `fetchPapers("models")`).
+- **Frontend `ModelExplorer.tsx`:** Rewritten to fetch the `models` category; renders a responsive grid of **image cards** (`<Link to="/models/:slug">`) with the image as background + a bottom **text overlay** (title, description, "View Model" CTA) over a dark gradient scrim. Falls back to a gradient block when `image_url` is empty. Keeps the "Models Under Development" empty state when none exist.
+- **Frontend `ModelDetail.tsx` (new):** Reads `slug` via `useParams`, fetches via `fetchPaper`. Full-width **banner image with overlaid title + description** (gradient scrim); published/updated dates; markdown `content` rendered via `Markdown`; and a footer row with external **Hugging Face** (`https://huggingface.co/Helios4U`) and **GitHub** (`https://github.com/Helios-4U`) buttons. "Back to Models" link.
+- **Frontend `App.tsx`:** Added `import ModelDetail`, route `"/models/:slug"` → `ModelDetail` (alongside existing `"/models"` → `ModelExplorer`).
+- **Studio `PaperForm.jsx`:** Added `'models'` to `CATEGORIES` select; added an **Image URL** text input (mapped to `image_url`) with a live `<img>` preview; `image_url` flows through create/update (sent as `null` when blank). Edit mode pre-fills `image_url`.
+- **Studio `App.css`:** Added `.image-preview` style (bordered, `object-fit: cover`, max-height 220px) for the URL preview.
+- **Verification:** `backend` `tsc --noEmit` passes; `frontend` `npm run lint` + `npm run build` pass; `studio` `npm run build` passes.
+- **Admin usage:** Create a paper with `category = models`, paste an image URL, and write specs + HF/GitHub links in the markdown body. It appears on `/models` and at `/models/:slug`.
+
+### Phase 17 — Dedicated `models` Table + Separate Studio Model UI
+- **Supersedes Phase 16** (which reused the `papers` table with `category=models` + an `image_url` column). Rolled back: removed `backend/migrations/0003_add_image_url.sql`; reverted `image_url` from `db.ts` (`Paper`/`PaperListItem`/create/update) and `papers` SELECT/INSERT/UPDATE. Removed `'models'` from `VALID_CATEGORIES`.
+- **Migration `backend/migrations/0003_create_models.sql`:** New `models` table with columns: `id, name, slug (UNIQUE), tagline, description, content, banner_image_url, card_image_url, parameters, context_length, base_model, required_hardware, huggingface_url, github_url, created_at, updated_at`; plus `idx_models_slug` unique index.
+- **Backend `db.ts`:** Added `Model` / `ModelListItem` / `CreateModelInput` / `UpdateModelInput` interfaces and helpers `getAllModels`, `getModelBySlug`, `createModel`, `updateModel` (dynamic SET over all nullable fields), `deleteModel`.
+- **Backend `index.ts`:** Added routes `GET/POST /api/helios/models` and `GET/PUT/DELETE /api/helios/models/:slug` (Bearer auth on writes; same CORS + security headers). Validation: required `name, slug, tagline, description, content`; slug regex; 409 on duplicate slug; 400 on missing fields.
+- **Frontend `api.ts`:** Added `Model` / `ModelListItem` types + `fetchModels()` (→ `/helios/models`) and `fetchModel(slug)` (→ `/helios/models/:slug`). Removed the `fetchModels` alias that pointed at `papers`.
+- **Frontend `ModelExplorer.tsx`:** Now uses `fetchModels()`; card grid renders `card_image_url` as background with overlaid `name` + `tagline` (gradient scrim). "Models Under Development" empty state preserved.
+- **Frontend `ModelDetail.tsx`:** Uses the dedicated model shape. Banner = `banner_image_url` with overlaid `name` + `tagline`. **Structured specs** rendered as a card grid from `parameters` (Layers icon), `context_length` (Boxes), `base_model` (Cpu), `required_hardware` (MemoryStick) — only non-empty fields shown. Markdown `content` rendered via `Markdown`. Footer HF/GitHub buttons now use **per-model** `huggingface_url` / `github_url`, falling back to the org URLs (`Helios4U`) when blank.
+- **Studio `api.js`:** Generalized the `request(resource, path, options)` helper (was hardcoded to `papers`); added `listModels`, `getModel`, `createModel`, `updateModel`, `deleteModel` hitting `/helios/models`.
+- **Studio `App.jsx`:** Added a header **nav** (Papers / Models `NavLink`s) and models routes: `/models` → `ModelsDashboardWrapper`, `/models/new` → `ModelForm`, `/models/:slug/edit` → `ModelForm`.
+- **Studio `ModelsDashboard.jsx` (new):** Table of models (name, slug, date) with edit/delete + "New Model" button (mirrors `Dashboard.jsx`).
+- **Studio `ModelForm.jsx` (new):** Dedicated model form (not `PaperForm`). Fields: `name` (+ auto-slug w/ Lock), `slug`, `tagline`, `description`, **Specifications** group (`parameters`, `context_length`, `base_model`, `required_hardware`), **Links** group (`huggingface_url`, `github_url`), **Images** group (`card_image_url`, `banner_image_url` with live `.image-preview`), and **Content** markdown split-pane preview. Empty strings sent as `null`.
+- **Studio `App.css`:** Added `.studio-nav` / `.studio-nav-link` (with `.active` brand underline) styles; reused existing `.image-preview`.
+- **Verification:** `backend` `tsc --noEmit` passes; `frontend` `npm run lint` + `npm run build` pass; `studio` `npm run build` passes.
+- **Deployment note:** Run `wrangler d1 migrations apply helios-db --local` and `--remote` to create the `models` table, then redeploy backend + frontend + studio. (If a remote DB previously had the old `image_url` migration applied, a follow-up `DROP COLUMN image_url` migration is needed — not applicable if remote was never migrated.)
+
+### Phase 17b — Runtime Fixes (CSP + Models 404)
+- **Symptom:** Console showed `/api/helios/models` → 404 on the custom domain; Studio CSP blocked external model images (`img-src 'self' data:`) so the `ModelForm` image preview never loaded; Studio CSP also blocked the Google Fonts stylesheet (`style-src` lacked `fonts.googleapis.com`).
+- **Studio `index.html` CSP:** Widened to `img-src 'self' data: https:` (allows arbitrary https model-image URLs) and added `https://fonts.googleapis.com` to `style-src`. Added `<link rel="preconnect">` + `<link rel="stylesheet">` for Inter, and removed the `@import url('https://fonts.googleapis.com/css2?family=Inter...')` from `studio/src/App.css` line 1 (avoids CSP `@import` block + Vite inlining quirk).
+- **Backend deploy:** `npx wrangler d1 migrations apply helios-db --remote` applied `0003_create_models.sql` to remote D1. `npm run deploy` uploaded the new Worker version, but the custom domain `api.helios.shishirkhatri.com.np` was still serving an old 2026-07-13 version (which had `/verify` but not `/models`), so `/models` 404'd at the edge. Fixed by `npx wrangler versions deploy e1bd63b0-...` promoting the new version to 100% traffic. Verified: `GET /api/helios/models` now returns `200 {"models":[]}` on the custom domain.
+- **Note:** A plain `wrangler deploy` does not automatically move 100% traffic to the new version when a custom domain is bound to a pinned older deployment — must run `wrangler versions deploy <version_id>` to promote. Future backend deploys should promote the latest version explicitly.
+- Studio `npm run build` passes.
+
 
 ---
 

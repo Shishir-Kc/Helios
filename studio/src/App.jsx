@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Routes, Route, Navigate, useNavigate, Link } from 'react-router-dom'
-import { isAuthenticated, clearToken, listPapers, deletePaper } from './api.js'
+import { Routes, Route, Navigate, useNavigate, Link, NavLink } from 'react-router-dom'
+import { isAuthenticated, clearToken, listPapers, deletePaper, listModels, deleteModel } from './api.js'
 import Login from './pages/Login.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import PaperForm from './pages/PaperForm.jsx'
+import ModelsDashboard from './pages/ModelsDashboard.jsx'
+import ModelForm from './pages/ModelForm.jsx'
 
 function RequireAuth({ children }) {
   if (!isAuthenticated()) {
@@ -12,12 +14,68 @@ function RequireAuth({ children }) {
   return children
 }
 
+function ModelsDashboardWrapper() {
+  const [models, setModels] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [toast, setToast] = useState(null)
+
+  const fetchModels = useCallback(async () => {
+    try {
+      setLoading(true)
+      const data = await listModels()
+      setModels(data.models)
+    } catch {
+      setModels([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchModels()
+  }, [fetchModels])
+
+  const handleDelete = useCallback(async (slug) => {
+    try {
+      await deleteModel(slug)
+      setModels((prev) => prev.filter((m) => m.slug !== slug))
+      setToast({ type: 'success', message: 'Model deleted' })
+    } catch (err) {
+      setToast({ type: 'error', message: err.message })
+    }
+  }, [])
+
+  return (
+    <>
+      <ModelsDashboard
+        models={models}
+        loading={loading}
+        onDelete={handleDelete}
+        onRefresh={fetchModels}
+      />
+      {toast && (
+        <div className={`toast toast-${toast.type}`}>
+          {toast.message}
+        </div>
+      )}
+    </>
+  )
+}
+
 function Layout({ onLogout }) {
   return (
     <div className="studio-layout">
       <header className="studio-header">
         <div className="studio-header-left">
           <Link to="/" className="studio-logo">HELIOS STUDIO</Link>
+          <nav className="studio-nav">
+            <NavLink to="/" end className={({ isActive }) => (isActive ? 'studio-nav-link active' : 'studio-nav-link')}>
+              Papers
+            </NavLink>
+            <NavLink to="/models" className={({ isActive }) => (isActive ? 'studio-nav-link active' : 'studio-nav-link')}>
+              Models
+            </NavLink>
+          </nav>
         </div>
         <div className="studio-header-right">
           <button className="btn btn-ghost btn-sm" onClick={onLogout}>Log out</button>
@@ -28,6 +86,9 @@ function Layout({ onLogout }) {
           <Route path="/" element={<DashboardWrapper />} />
           <Route path="/papers/new" element={<PaperForm />} />
           <Route path="/papers/:slug/edit" element={<PaperForm />} />
+          <Route path="/models" element={<ModelsDashboardWrapper />} />
+          <Route path="/models/new" element={<ModelForm />} />
+          <Route path="/models/:slug/edit" element={<ModelForm />} />
         </Routes>
       </main>
     </div>

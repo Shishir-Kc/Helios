@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { getPaper, createPaper, updatePaper } from '../api.js'
 
-const CATEGORIES = ['papers', 'research', 'docs']
+const CATEGORIES = ['papers', 'research', 'docs', 'models']
 
 function slugify(text) {
   return text
@@ -37,6 +37,7 @@ export default function PaperForm() {
     slug: '',
     content: '',
     category: 'papers',
+    image_url: '',
   })
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
@@ -54,6 +55,7 @@ export default function PaperForm() {
           slug: data.paper.slug,
           content: data.paper.content,
           category: data.paper.category,
+          image_url: data.paper.image_url ?? '',
         })
         setSlugManuallyEdited(true)
       } catch (err) {
@@ -105,9 +107,10 @@ export default function PaperForm() {
           description: form.description,
           content: form.content,
           category: form.category,
+          image_url: form.image_url || null,
         })
       } else {
-        await createPaper(form)
+        await createPaper({ ...form, image_url: form.image_url || null })
       }
       navigate('/')
     } catch (err) {
@@ -200,6 +203,23 @@ export default function PaperForm() {
               rows={2}
             />
             {errors.description && <div className="field-error">{errors.description}</div>}
+          </div>
+
+          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+            <label htmlFor="image_url">Image URL</label>
+            <input
+              id="image_url"
+              className="input"
+              value={form.image_url}
+              onChange={handleChange('image_url')}
+              placeholder="https://… (banner image shown on the detail page)"
+              style={{ fontFamily: 'monospace', fontSize: 13 }}
+            />
+            {form.image_url.trim() && (
+              <div className="image-preview">
+                <img src={form.image_url} alt="preview" />
+              </div>
+            )}
           </div>
 
           <div className="form-group" style={{ gridColumn: '1 / -1' }}>

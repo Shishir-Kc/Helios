@@ -23,7 +23,7 @@ export async function verifyKey(token) {
   return res.ok
 }
 
-async function request(path, options = {}) {
+async function request(resource, path, options = {}) {
   const token = getToken()
   const headers = { ...options.headers }
   if (token) {
@@ -33,7 +33,7 @@ async function request(path, options = {}) {
     headers['Content-Type'] = 'application/json'
   }
 
-  const res = await fetch(`${BASE}/helios/papers${path}`, {
+  const res = await fetch(`${BASE}/helios/${resource}${path}`, {
     ...options,
     headers,
   })
@@ -52,29 +52,57 @@ async function request(path, options = {}) {
 }
 
 export function listPapers() {
-  return request('')
+  return request('papers', '')
 }
 
 export function getPaper(slug) {
-  return request(`/${slug}`)
+  return request('papers', `/${slug}`)
 }
 
 export function createPaper(input) {
-  return request('', {
+  return request('papers', '', {
     method: 'POST',
     body: JSON.stringify(input),
   })
 }
 
 export function updatePaper(slug, input) {
-  return request(`/${slug}`, {
+  return request('papers', `/${slug}`, {
     method: 'PUT',
     body: JSON.stringify(input),
   })
 }
 
 export function deletePaper(slug) {
-  return request(`/${slug}`, {
+  return request('papers', `/${slug}`, {
+    method: 'DELETE',
+  })
+}
+
+export function listModels() {
+  return request('models', '')
+}
+
+export function getModel(slug) {
+  return request('models', `/${slug}`)
+}
+
+export function createModel(input) {
+  return request('models', '', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateModel(slug, input) {
+  return request('models', `/${slug}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
+}
+
+export function deleteModel(slug) {
+  return request('models', `/${slug}`, {
     method: 'DELETE',
   })
 }

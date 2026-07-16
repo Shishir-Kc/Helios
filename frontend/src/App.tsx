@@ -8,6 +8,7 @@ import { Link, NavLink, Routes, Route, useLocation } from "react-router-dom";
 import { motion } from "motion/react";
 import { Menu, X, Github } from "lucide-react";
 import ModelExplorer from "./components/ModelExplorer";
+import ModelDetail from "./components/ModelDetail";
 import Manifesto from "./components/Manifesto";
 import ResearchView from "./components/ResearchView";
 import PapersView from "./components/PapersView";
@@ -54,9 +55,16 @@ function ScrollToTop() {
 function Header({ scrolled }: { scrolled: boolean }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const close = () => setIsMobileMenuOpen(false);
+    window.addEventListener("scroll", close, { passive: true });
+    return () => window.removeEventListener("scroll", close);
+  }, [isMobileMenuOpen]);
+
   return (
     <>
-      <header id="main-header" className="max-w-7xl mx-auto w-full px-6 md:px-12 py-8 flex items-center justify-between sticky top-0 bg-[#FAF9F6]/90 backdrop-blur-md z-30 border-b border-zinc-200/40">
+      <header id="main-header" className="max-w-7xl mx-auto w-full mt-4 px-6 md:px-12 py-5 flex items-center justify-between sticky top-4 rounded-2xl bg-[#FAF9F6]/80 backdrop-blur-md z-30 border border-zinc-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
         <div className="flex flex-col">
           <Link
             to="/"
@@ -104,7 +112,7 @@ function Header({ scrolled }: { scrolled: boolean }) {
       <motion.div
         initial={{ height: 0, opacity: 0 }}
         animate={{ height: isMobileMenuOpen ? "auto" : 0, opacity: isMobileMenuOpen ? 1 : 0 }}
-        className="md:hidden overflow-hidden bg-[#FAF9F6] border-b border-zinc-200 px-6 absolute w-full left-0 top-[96px] z-20"
+        className="md:hidden overflow-hidden bg-[#FAF9F6] border-b border-zinc-200 border-x px-6 fixed w-full left-0 top-24 z-20 rounded-b-2xl"
       >
         <div className="flex flex-col space-y-4 py-6 pb-8 text-sm font-mono font-bold uppercase tracking-wider items-start">
           {NAV_LINKS.map((link) => (
@@ -209,6 +217,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/models" element={<ModelExplorer />} />
+          <Route path="/models/:slug" element={<ModelDetail />} />
           <Route path="/research" element={<ResearchView />} />
           <Route path="/papers" element={<PapersView />} />
           <Route path="/docs" element={<DocsView />} />
