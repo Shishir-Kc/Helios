@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Routes, Route, Navigate, useNavigate, Link, NavLink } from 'react-router-dom'
-import { isAuthenticated, clearToken, listPapers, deletePaper, listModels, deleteModel } from './api.js'
+import { isAuthenticated, clearToken, listPapers, deletePaper, listModels, deleteModel, listFamilies, deleteFamily } from './api.js'
 import Login from './pages/Login.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import PaperForm from './pages/PaperForm.jsx'
 import ModelsDashboard from './pages/ModelsDashboard.jsx'
 import ModelForm from './pages/ModelForm.jsx'
+import FamiliesDashboard from './pages/FamiliesDashboard.jsx'
+import FamilyForm from './pages/FamilyForm.jsx'
 
 function RequireAuth({ children }) {
   if (!isAuthenticated()) {
@@ -62,6 +64,53 @@ function ModelsDashboardWrapper() {
   )
 }
 
+function FamiliesDashboardWrapper() {
+  const [families, setFamilies] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [toast, setToast] = useState(null)
+
+  const fetchFamiliesList = useCallback(async () => {
+    try {
+      setLoading(true)
+      const data = await listFamilies()
+      setFamilies(data.families)
+    } catch {
+      setFamilies([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchFamiliesList()
+  }, [fetchFamiliesList])
+
+  const handleDelete = useCallback(async (slug) => {
+    try {
+      await deleteFamily(slug)
+      setFamilies((prev) => prev.filter((f) => f.slug !== slug))
+      setToast({ type: 'success', message: 'Family deleted' })
+    } catch (err) {
+      setToast({ type: 'error', message: err.message })
+    }
+  }, [])
+
+  return (
+    <>
+      <FamiliesDashboard
+        families={families}
+        loading={loading}
+        onDelete={handleDelete}
+      />
+      {toast && (
+        <div className={`toast toast-${toast.type}`}>
+          {toast.message}
+        </div>
+      )}
+    </>
+  )
+}
+
 function Layout({ onLogout }) {
   return (
     <div className="studio-layout">
@@ -74,6 +123,9 @@ function Layout({ onLogout }) {
             </NavLink>
             <NavLink to="/models" className={({ isActive }) => (isActive ? 'studio-nav-link active' : 'studio-nav-link')}>
               Models
+            </NavLink>
+            <NavLink to="/families" className={({ isActive }) => (isActive ? 'studio-nav-link active' : 'studio-nav-link')}>
+              Families
             </NavLink>
           </nav>
         </div>
@@ -89,6 +141,9 @@ function Layout({ onLogout }) {
           <Route path="/models" element={<ModelsDashboardWrapper />} />
           <Route path="/models/new" element={<ModelForm />} />
           <Route path="/models/:slug/edit" element={<ModelForm />} />
+          <Route path="/families" element={<FamiliesDashboardWrapper />} />
+          <Route path="/families/new" element={<FamilyForm />} />
+          <Route path="/families/:slug/edit" element={<FamilyForm />} />
         </Routes>
       </main>
     </div>

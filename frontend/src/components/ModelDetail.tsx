@@ -114,6 +114,7 @@ export default function ModelDetail() {
               </p>
             </div>
           )}
+
           </div>
 
           <div className="max-w-3xl mx-auto w-full px-6 md:px-12 py-12">

@@ -10,14 +10,23 @@ import {
   deletePaper,
   isValidCategory,
   getAllModels,
+  getModelsByFamily,
   getModelBySlug,
   createModel,
   updateModel,
   deleteModel,
+  getAllFamilies,
+  getFamilyBySlug,
+  createFamily,
+  updateFamily,
+  deleteFamily,
+  isValidSlug,
   type CreatePaperInput,
   type UpdatePaperInput,
   type CreateModelInput,
   type UpdateModelInput,
+  type CreateFamilyInput,
+  type UpdateFamilyInput,
 } from './db'
 
 type Bindings = {
@@ -143,7 +152,10 @@ app.delete('/api/helios/papers/:slug', adminAuth, async (c) => {
 
 app.get('/api/helios/models', async (c) => {
   try {
-    const models = await getAllModels(c.env.DB)
+    const family = c.req.query('family')
+    const models = family
+      ? await getModelsByFamily(c.env.DB, family)
+      : await getAllModels(c.env.DB)
     return c.json({ models })
   } catch (err) {
     return c.json({ error: 'Failed to fetch models' }, 500)
@@ -223,6 +235,89 @@ app.delete('/api/helios/models/:slug', adminAuth, async (c) => {
     return c.json({ message: 'Model deleted' })
   } catch (err) {
     return c.json({ error: 'Failed to delete model' }, 500)
+  }
+})
+
+// --- Families ---
+
+app.get('/api/helios/families', async (c) => {
+  try {
+    const families = await getAllFamilies(c.env.DB)
+    return c.json({ families })
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch families' }, 500)
+  }
+})
+
+app.get('/api/helios/families/:slug', async (c) => {
+  try {
+    const slug = c.req.param('slug')
+    const family = await getFamilyBySlug(c.env.DB, slug)
+    if (!family) return c.json({ error: 'Family not found' }, 404)
+    return c.json({ family })
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch family' }, 500)
+  }
+})
+
+app.post('/api/helios/families', adminAuth, async (c) => {
+  try {
+    const body = await c.req.json<CreateFamilyInput>()
+
+    if (!body.name || !body.slug) {
+      return c.json({ error: 'Missing required fields: name, slug' }, 400)
+    }
+
+    if (!isValidSlug(body.slug)) {
+      return c.json({ error: 'Slug must be lowercase alphanumeric with hyphens only' }, 400)
+    }
+
+    const existing = await getFamilyBySlug(c.env.DB, body.slug)
+    if (existing) {
+      return c.json({ error: 'A family with this slug already exists' }, 409)
+    }
+
+    const success = await createFamily(c.env.DB, body)
+    if (!success) return c.json({ error: 'Failed to create family' }, 500)
+
+    const family = await getFamilyBySlug(c.env.DB, body.slug)
+    return c.json({ family }, 201)
+  } catch (err) {
+    return c.json({ error: 'Failed to create family' }, 500)
+  }
+})
+
+app.put('/api/helios/families/:slug', adminAuth, async (c) => {
+  try {
+    const slug = c.req.param('slug')
+    const body = await c.req.json<UpdateFamilyInput>()
+
+    const existing = await getFamilyBySlug(c.env.DB, slug)
+    if (!existing) return c.json({ error: 'Family not found' }, 404)
+
+    const success = await updateFamily(c.env.DB, slug, body)
+    if (!success) return c.json({ error: 'Failed to update family' }, 500)
+
+    const family = await getFamilyBySlug(c.env.DB, slug)
+    return c.json({ family })
+  } catch (err) {
+    return c.json({ error: 'Failed to update family' }, 500)
+  }
+})
+
+app.delete('/api/helios/families/:slug', adminAuth, async (c) => {
+  try {
+    const slug = c.req.param('slug')
+
+    const existing = await getFamilyBySlug(c.env.DB, slug)
+    if (!existing) return c.json({ error: 'Family not found' }, 404)
+
+    const success = await deleteFamily(c.env.DB, slug)
+    if (!success) return c.json({ error: 'Failed to delete family' }, 500)
+
+    return c.json({ message: 'Family deleted' })
+  } catch (err) {
+    return c.json({ error: 'Failed to delete family' }, 500)
   }
 })
 

@@ -106,3 +106,31 @@ export function deleteModel(slug) {
     method: 'DELETE',
   })
 }
+
+export function listFamilies() {
+  return request('families', '')
+}
+
+export function getFamily(slug) {
+  return request('families', `/${slug}`)
+}
+
+export function createFamily(input) {
+  return request('families', '', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateFamily(slug, input) {
+  return request('families', `/${slug}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
+  })
+}
+
+export function deleteFamily(slug) {
+  return request('families', `/${slug}`, {
+    method: 'DELETE',
+  })
+}

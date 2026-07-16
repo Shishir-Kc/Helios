@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-import { getModel, createModel, updateModel } from '../api.js'
+import { getModel, createModel, updateModel, listFamilies } from '../api.js'
 
 function slugify(text) {
   return text
@@ -38,6 +38,7 @@ const EMPTY = {
   required_hardware: '',
   huggingface_url: '',
   github_url: '',
+  family_slug: '',
 }
 
 export default function ModelForm() {
@@ -50,6 +51,13 @@ export default function ModelForm() {
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(isEdit)
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
+  const [families, setFamilies] = useState([])
+
+  useEffect(() => {
+    listFamilies()
+      .then((data) => setFamilies(data.families ?? []))
+      .catch(() => setFamilies([]))
+  }, [])
 
   useEffect(() => {
     if (!isEdit) return
@@ -70,6 +78,7 @@ export default function ModelForm() {
           required_hardware: data.model.required_hardware ?? '',
           huggingface_url: data.model.huggingface_url ?? '',
           github_url: data.model.github_url ?? '',
+          family_slug: data.model.family_slug ?? '',
         })
         setSlugManuallyEdited(true)
       } catch (err) {
@@ -130,6 +139,7 @@ export default function ModelForm() {
       required_hardware: orNull(form.required_hardware),
       huggingface_url: orNull(form.huggingface_url),
       github_url: orNull(form.github_url),
+      family_slug: orNull(form.family_slug),
     }
 
     try {
@@ -201,6 +211,23 @@ export default function ModelForm() {
               </div>
               {errors.slug && <div className="field-error">{errors.slug}</div>}
             </div>
+          </div>
+
+          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+            <label htmlFor="family_slug">Family</label>
+            <select
+              id="family_slug"
+              className="input"
+              value={form.family_slug}
+              onChange={handleChange('family_slug')}
+            >
+              <option value="">— No family —</option>
+              {families.map((fam) => (
+                <option key={fam.slug} value={fam.slug}>
+                  {fam.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group" style={{ gridColumn: '1 / -1' }}>

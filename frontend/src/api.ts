@@ -20,6 +20,7 @@ export interface ModelListItem {
   name: string;
   tagline: string;
   card_image_url?: string | null;
+  family_slug?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -36,6 +37,14 @@ export interface Model extends ModelListItem {
   github_url?: string | null;
 }
 
+export interface Family {
+  slug: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export async function fetchPapers(category: string): Promise<PaperListItem[]> {
   const res = await fetch(
     `${API_BASE}/helios/papers?category=${encodeURIComponent(category)}`,
@@ -45,11 +54,21 @@ export async function fetchPapers(category: string): Promise<PaperListItem[]> {
   return data.papers ?? [];
 }
 
-export async function fetchModels(): Promise<ModelListItem[]> {
-  const res = await fetch(`${API_BASE}/helios/models`);
+export async function fetchModels(family?: string): Promise<ModelListItem[]> {
+  const url = family
+    ? `${API_BASE}/helios/models?family=${encodeURIComponent(family)}`
+    : `${API_BASE}/helios/models`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch");
   const data = await res.json();
   return data.models ?? [];
+}
+
+export async function fetchFamilies(): Promise<Family[]> {
+  const res = await fetch(`${API_BASE}/helios/families`);
+  if (!res.ok) throw new Error("Failed to fetch");
+  const data = await res.json();
+  return data.families ?? [];
 }
 
 export async function fetchModel(slug: string): Promise<Model> {

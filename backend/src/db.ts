@@ -134,6 +134,7 @@ export interface Model {
   required_hardware: string | null
   huggingface_url: string | null
   github_url: string | null
+  family_slug: string | null
   created_at: string
   updated_at: string
 }
@@ -144,6 +145,7 @@ export interface ModelListItem {
   slug: string
   tagline: string
   card_image_url: string | null
+  family_slug: string | null
   created_at: string
   updated_at: string
 }
@@ -162,6 +164,7 @@ export interface CreateModelInput {
   required_hardware?: string | null
   huggingface_url?: string | null
   github_url?: string | null
+  family_slug?: string | null
 }
 
 export interface UpdateModelInput {
@@ -177,11 +180,20 @@ export interface UpdateModelInput {
   required_hardware?: string | null
   huggingface_url?: string | null
   github_url?: string | null
+  family_slug?: string | null
 }
 
 export function getAllModels(db: D1Database): Promise<ModelListItem[]> {
   return db
-    .prepare('SELECT id, name, slug, tagline, card_image_url, created_at, updated_at FROM models ORDER BY created_at DESC')
+    .prepare('SELECT id, name, slug, tagline, card_image_url, family_slug, created_at, updated_at FROM models ORDER BY created_at DESC')
+    .all<ModelListItem>()
+    .then((r) => r.results)
+}
+
+export function getModelsByFamily(db: D1Database, familySlug: string): Promise<ModelListItem[]> {
+  return db
+    .prepare('SELECT id, name, slug, tagline, card_image_url, family_slug, created_at, updated_at FROM models WHERE family_slug = ? ORDER BY created_at DESC')
+    .bind(familySlug)
     .all<ModelListItem>()
     .then((r) => r.results)
 }
@@ -199,8 +211,8 @@ export function createModel(db: D1Database, input: CreateModelInput): Promise<bo
       `INSERT INTO models (
         name, slug, tagline, description, content,
         banner_image_url, card_image_url, parameters, context_length,
-        base_model, required_hardware, huggingface_url, github_url
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        base_model, required_hardware, huggingface_url, github_url, family_slug
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       input.name,
@@ -215,7 +227,8 @@ export function createModel(db: D1Database, input: CreateModelInput): Promise<bo
       input.base_model ?? null,
       input.required_hardware ?? null,
       input.huggingface_url ?? null,
-      input.github_url ?? null
+      input.github_url ?? null,
+      input.family_slug ?? null
     )
     .run()
     .then((r) => r.success)
@@ -245,6 +258,7 @@ export function updateModel(db: D1Database, slug: string, input: UpdateModelInpu
   add('required_hardware', 'required_hardware')
   add('huggingface_url', 'huggingface_url')
   add('github_url', 'github_url')
+  add('family_slug', 'family_slug')
 
   if (sets.length === 0) return Promise.resolve(false)
 
@@ -261,6 +275,98 @@ export function updateModel(db: D1Database, slug: string, input: UpdateModelInpu
 export function deleteModel(db: D1Database, slug: string): Promise<boolean> {
   return db
     .prepare('DELETE FROM models WHERE slug = ?')
+    .bind(slug)
+    .run()
+    .then((r) => r.success)
+}
+
+// --- Families ---
+
+export interface Family {
+  id: number
+  name: string
+  slug: string
+  description: string
+  created_at: string
+  updated_at: string
+}
+
+export interface FamilyListItem {
+  id: number
+  name: string
+  slug: string
+  description: string
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateFamilyInput {
+  name: string
+  slug: string
+  description?: string
+}
+
+export interface UpdateFamilyInput {
+  name?: string
+  description?: string
+}
+
+const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+export function isValidSlug(slug: string): boolean {
+  return slugRegex.test(slug)
+}
+
+export function getAllFamilies(db: D1Database): Promise<FamilyListItem[]> {
+  return db
+    .prepare('SELECT id, name, slug, description, created_at, updated_at FROM families ORDER BY created_at DESC')
+    .all<FamilyListItem>()
+    .then((r) => r.results)
+}
+
+export function getFamilyBySlug(db: D1Database, slug: string): Promise<Family | null> {
+  return db
+    .prepare('SELECT * FROM families WHERE slug = ?')
+    .bind(slug)
+    .first<Family>()
+}
+
+export function createFamily(db: D1Database, input: CreateFamilyInput): Promise<boolean> {
+  return db
+    .prepare('INSERT INTO families (name, slug, description) VALUES (?, ?, ?)')
+    .bind(input.name, input.slug, input.description ?? '')
+    .run()
+    .then((r) => r.success)
+}
+
+export function updateFamily(db: D1Database, slug: string, input: UpdateFamilyInput): Promise<boolean> {
+  const sets: string[] = []
+  const values: unknown[] = []
+
+  if (input.name !== undefined) {
+    sets.push('name = ?')
+    values.push(input.name)
+  }
+  if (input.description !== undefined) {
+    sets.push('description = ?')
+    values.push(input.description)
+  }
+
+  if (sets.length === 0) return Promise.resolve(false)
+
+  sets.push("updated_at = datetime('now')")
+  values.push(slug)
+
+  return db
+    .prepare(`UPDATE families SET ${sets.join(', ')} WHERE slug = ?`)
+    .bind(...values)
+    .run()
+    .then((r) => r.success)
+}
+
+export function deleteFamily(db: D1Database, slug: string): Promise<boolean> {
+  return db
+    .prepare('DELETE FROM families WHERE slug = ?')
     .bind(slug)
     .run()
     .then((r) => r.success)

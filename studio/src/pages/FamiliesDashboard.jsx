@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { listFamilies } from '../api.js'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 function ConfirmDialog({ slug, name, onConfirm, onCancel }) {
   return (
     <div className="dialog-overlay" onClick={onCancel}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
         <h3>Delete &ldquo;{name}&rdquo;?</h3>
-        <p>This action cannot be undone. The model will be permanently removed.</p>
+        <p>This action cannot be undone. The family will be permanently removed.</p>
         <div className="dialog-actions">
           <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
           <button className="btn btn-danger" onClick={() => onConfirm(slug)}>Delete</button>
@@ -17,18 +16,9 @@ function ConfirmDialog({ slug, name, onConfirm, onCancel }) {
   )
 }
 
-export default function ModelsDashboard({ models, loading, onDelete, onRefresh }) {
+export default function FamiliesDashboard({ families, loading, onDelete }) {
   const [deleteTarget, setDeleteTarget] = useState(null)
-  const [families, setFamilies] = useState([])
   const navigate = useNavigate()
-
-  useEffect(() => {
-    listFamilies()
-      .then((data) => setFamilies(data.families ?? []))
-      .catch(() => setFamilies([]))
-  }, [])
-
-  const familyName = (slug) => families.find((f) => f.slug === slug)?.name ?? '—'
 
   const formatDate = (iso) => {
     if (!iso) return '—'
@@ -40,23 +30,23 @@ export default function ModelsDashboard({ models, loading, onDelete, onRefresh }
   }
 
   if (loading) {
-    return <div className="empty-state"><p>Loading models…</p></div>
+    return <div className="empty-state"><p>Loading families…</p></div>
   }
 
   return (
     <>
       <div className="dashboard-header">
-        <h1>Models</h1>
-        <button className="btn btn-primary" onClick={() => navigate('/models/new')}>
-          + New Model
+        <h1>Families</h1>
+        <button className="btn btn-primary" onClick={() => navigate('/families/new')}>
+          + New Family
         </button>
       </div>
 
-      {models.length === 0 ? (
+      {families.length === 0 ? (
         <div className="empty-state">
-          <p>No models yet.</p>
-          <button className="btn btn-secondary" onClick={() => navigate('/models/new')}>
-            Create your first model
+          <p>No families yet.</p>
+          <button className="btn btn-secondary" onClick={() => navigate('/families/new')}>
+            Create your first family
           </button>
         </div>
       ) : (
@@ -64,36 +54,32 @@ export default function ModelsDashboard({ models, loading, onDelete, onRefresh }
           <thead>
             <tr>
               <th>Name</th>
-              <th>Family</th>
               <th>Slug</th>
               <th>Date</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {models.map((model) => (
-              <tr key={model.slug}>
-                <td style={{ fontWeight: 500 }}>{model.name}</td>
-                <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-                  {familyName(model.family_slug)}
-                </td>
+            {families.map((family) => (
+              <tr key={family.slug}>
+                <td style={{ fontWeight: 500 }}>{family.name}</td>
                 <td style={{ color: 'var(--color-text-muted)', fontFamily: 'monospace', fontSize: 13 }}>
-                  {model.slug}
+                  {family.slug}
                 </td>
                 <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
-                  {formatDate(model.created_at)}
+                  {formatDate(family.created_at)}
                 </td>
                 <td className="actions">
                   <button
                     className="btn btn-ghost btn-sm"
-                    onClick={() => navigate(`/models/${model.slug}/edit`)}
+                    onClick={() => navigate(`/families/${family.slug}/edit`)}
                   >
                     Edit
                   </button>
                   <button
                     className="btn btn-ghost btn-sm"
                     style={{ color: 'var(--color-danger)' }}
-                    onClick={() => setDeleteTarget(model)}
+                    onClick={() => setDeleteTarget(family)}
                   >
                     Delete
                   </button>
