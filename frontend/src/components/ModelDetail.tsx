@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, AlertTriangle, Github, Cpu, Layers, MemoryStick, Boxes } from "lucide-react";
 import Markdown from "./Markdown";
 import Loading from "./Loading";
+import UnreleasedModel from "./UnreleasedModel";
 import { fetchModel, formatDate, type Model } from "../api";
 
 const ORG_HF = "https://huggingface.co/Helios4U";
@@ -83,7 +84,9 @@ export default function ModelDetail() {
         </div>
       )}
 
-      {model && (
+      {model && !model.released && <UnreleasedModel />}
+
+      {model && model.released && (
         <>
           {/* Banner image with overlaid title */}
           <div className="px-6 md:px-12 mt-6">
