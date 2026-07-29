@@ -39,6 +39,7 @@ const EMPTY = {
   huggingface_url: '',
   github_url: '',
   family_slug: '',
+  released: false,
 }
 
 export default function ModelForm() {
@@ -64,7 +65,7 @@ export default function ModelForm() {
     ;(async () => {
       try {
         const data = await getModel(slug)
-        setForm({
+          setForm({
           name: data.model.name,
           slug: data.model.slug,
           tagline: data.model.tagline,
@@ -79,6 +80,7 @@ export default function ModelForm() {
           huggingface_url: data.model.huggingface_url ?? '',
           github_url: data.model.github_url ?? '',
           family_slug: data.model.family_slug ?? '',
+          released: data.model.released ?? false,
         })
         setSlugManuallyEdited(true)
       } catch (err) {
@@ -140,6 +142,7 @@ export default function ModelForm() {
       huggingface_url: orNull(form.huggingface_url),
       github_url: orNull(form.github_url),
       family_slug: orNull(form.family_slug),
+      released: form.released,
     }
 
     try {
@@ -228,6 +231,19 @@ export default function ModelForm() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+            <label htmlFor="released" className="flex items-center gap-2 cursor-pointer">
+              <input
+                id="released"
+                type="checkbox"
+                checked={form.released}
+                onChange={handleChange('released')}
+                className="w-4 h-4 accent-[#F27D26]"
+              />
+              <span className="text-sm font-mono text-zinc-700">Released</span>
+            </label>
           </div>
 
           <div className="form-group" style={{ gridColumn: '1 / -1' }}>
