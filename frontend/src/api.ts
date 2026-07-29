@@ -21,6 +21,7 @@ export interface ModelListItem {
   tagline: string;
   card_image_url?: string | null;
   family_slug?: string | null;
+  released: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +36,7 @@ export interface Model extends ModelListItem {
   required_hardware?: string | null;
   huggingface_url?: string | null;
   github_url?: string | null;
+  released: boolean;
 }
 
 export interface Family {
