@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Cpu, Hammer } from "lucide-react";
+import { ArrowRight, Cpu, Hammer, Lock } from "lucide-react";
 import { fetchModels, type ModelListItem } from "../api";
 import Loading from "./Loading";
 
@@ -70,33 +70,62 @@ export default function ModelExplorer() {
       {!loading && !error && models.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {models.map((model) => (
-            <Link
-              key={model.slug}
-              to={`/models/${model.slug}`}
-              className="group relative block h-48 md:h-56 rounded-xl overflow-hidden cursor-pointer"
-            >
-              {model.card_image_url ? (
-                <img
-                  src={model.card_image_url}
-                  alt={model.name}
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-zinc-800 to-zinc-950" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 p-6">
-                <h3 className="font-serif text-2xl font-bold text-white leading-snug mb-1">
-                  {model.name}
-                </h3>
-                <p className="text-sm text-zinc-200 font-sans leading-relaxed line-clamp-2">
-                  {model.tagline}
-                </p>
-                <span className="mt-4 inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider font-bold text-white/90 group-hover:text-[#F27D26] transition-colors">
-                  View Model <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-                </span>
+            model.released ? (
+              <Link
+                key={model.slug}
+                to={`/models/${model.slug}`}
+                className="group relative block h-48 md:h-56 rounded-xl overflow-hidden cursor-pointer"
+              >
+                {model.card_image_url ? (
+                  <img
+                    src={model.card_image_url}
+                    alt={model.name}
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-zinc-800 to-zinc-950" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-6">
+                  <h3 className="font-serif text-2xl font-bold text-white leading-snug mb-1">
+                    {model.name}
+                  </h3>
+                  <p className="text-sm text-zinc-200 font-sans leading-relaxed line-clamp-2">
+                    {model.tagline}
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider font-bold text-white/90 group-hover:text-[#F27D26] transition-colors">
+                    View Model <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </div>
+              </Link>
+            ) : (
+              <div
+                key={model.slug}
+                className="group relative block h-48 md:h-56 rounded-xl overflow-hidden cursor-not-allowed opacity-60"
+              >
+                {model.card_image_url ? (
+                  <img
+                    src={model.card_image_url}
+                    alt={model.name}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 h-full w-full bg-gradient-to-br from-zinc-800 to-zinc-950" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-6">
+                  <h3 className="font-serif text-2xl font-bold text-white leading-snug mb-1">
+                    {model.name}
+                  </h3>
+                  <p className="text-sm text-zinc-200 font-sans leading-relaxed line-clamp-2">
+                    {model.tagline}
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider font-bold text-white/90">
+                    <Lock className="w-3.5 h-3.5" /> Not Released
+                  </span>
+                </div>
               </div>
-            </Link>
+            )
           ))}
         </div>
       )}
