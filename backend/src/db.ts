@@ -135,6 +135,7 @@ export interface Model {
   huggingface_url: string | null
   github_url: string | null
   family_slug: string | null
+  released: boolean
   created_at: string
   updated_at: string
 }
@@ -146,6 +147,7 @@ export interface ModelListItem {
   tagline: string
   card_image_url: string | null
   family_slug: string | null
+  released: boolean
   created_at: string
   updated_at: string
 }
@@ -165,6 +167,7 @@ export interface CreateModelInput {
   huggingface_url?: string | null
   github_url?: string | null
   family_slug?: string | null
+  released?: boolean
 }
 
 export interface UpdateModelInput {
@@ -181,18 +184,19 @@ export interface UpdateModelInput {
   huggingface_url?: string | null
   github_url?: string | null
   family_slug?: string | null
+  released?: boolean
 }
 
 export function getAllModels(db: D1Database): Promise<ModelListItem[]> {
   return db
-    .prepare('SELECT id, name, slug, tagline, card_image_url, family_slug, created_at, updated_at FROM models ORDER BY created_at DESC')
+    .prepare('SELECT id, name, slug, tagline, card_image_url, family_slug, released, created_at, updated_at FROM models ORDER BY created_at DESC')
     .all<ModelListItem>()
     .then((r) => r.results)
 }
 
 export function getModelsByFamily(db: D1Database, familySlug: string): Promise<ModelListItem[]> {
   return db
-    .prepare('SELECT id, name, slug, tagline, card_image_url, family_slug, created_at, updated_at FROM models WHERE family_slug = ? ORDER BY created_at DESC')
+    .prepare('SELECT id, name, slug, tagline, card_image_url, family_slug, released, created_at, updated_at FROM models WHERE family_slug = ? ORDER BY created_at DESC')
     .bind(familySlug)
     .all<ModelListItem>()
     .then((r) => r.results)
@@ -211,8 +215,8 @@ export function createModel(db: D1Database, input: CreateModelInput): Promise<bo
       `INSERT INTO models (
         name, slug, tagline, description, content,
         banner_image_url, card_image_url, parameters, context_length,
-        base_model, required_hardware, huggingface_url, github_url, family_slug
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        base_model, required_hardware, huggingface_url, github_url, family_slug, released
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       input.name,
@@ -228,7 +232,8 @@ export function createModel(db: D1Database, input: CreateModelInput): Promise<bo
       input.required_hardware ?? null,
       input.huggingface_url ?? null,
       input.github_url ?? null,
-      input.family_slug ?? null
+      input.family_slug ?? null,
+      input.released ?? false
     )
     .run()
     .then((r) => r.success)
@@ -259,6 +264,7 @@ export function updateModel(db: D1Database, slug: string, input: UpdateModelInpu
   add('huggingface_url', 'huggingface_url')
   add('github_url', 'github_url')
   add('family_slug', 'family_slug')
+  add('released', 'released')
 
   if (sets.length === 0) return Promise.resolve(false)
 
