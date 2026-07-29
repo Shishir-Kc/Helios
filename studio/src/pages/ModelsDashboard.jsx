@@ -65,6 +65,7 @@ export default function ModelsDashboard({ models, loading, onDelete, onRefresh }
             <tr>
               <th>Name</th>
               <th>Family</th>
+              <th>Released</th>
               <th>Slug</th>
               <th>Date</th>
               <th></th>
@@ -76,6 +77,13 @@ export default function ModelsDashboard({ models, loading, onDelete, onRefresh }
                 <td style={{ fontWeight: 500 }}>{model.name}</td>
                 <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
                   {familyName(model.family_slug)}
+                </td>
+                <td>
+                  {model.released ? (
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-600">Released</span>
+                  ) : (
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-400">Draft</span>
+                  )}
                 </td>
                 <td style={{ color: 'var(--color-text-muted)', fontFamily: 'monospace', fontSize: 13 }}>
                   {model.slug}
