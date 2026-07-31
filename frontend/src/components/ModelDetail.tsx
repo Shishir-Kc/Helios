@@ -86,7 +86,7 @@ export default function ModelDetail() {
 
       {model && !model.released && <UnreleasedModel />}
 
-      {model && model.released && (
+      {model && !!model.released && (
         <>
           {/* Banner image with overlaid title */}
           <div className="px-6 md:px-12 mt-6">

@@ -92,7 +92,7 @@ export default function ModelForm() {
   }, [slug, isEdit, navigate])
 
   const handleChange = (field) => (e) => {
-    const value = e.target.value
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
     setForm((prev) => {
       const next = { ...prev, [field]: value }
       if (field === 'name' && !slugManuallyEdited) {
