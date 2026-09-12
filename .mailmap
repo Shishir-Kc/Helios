@@ -1,0 +1,5 @@
+# Canonicalize all Helios authors to the owner so GitHub never splits
+# attribution to a phantom second contributor.
+# Format: Canonical Name <canonical email> Commit Name <commit email>
+Shishir-Kc <shishir.khatri.kc@gmail.com> Shishir KC <shishir.khatri.kc@gmail.com>
+Shishir-Kc <shishir.khatri.kc@gmail.com> Shishir-Kc <shishir.khatri.kc@gmail.com>
