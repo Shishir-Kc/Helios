@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Routes, Route, useLocation } from "react-router-dom";
-import { motion } from "motion/react";
-import { Menu, X, Github } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { Menu, X, Github, ChevronDown, Sun, Moon } from "lucide-react";
 import ModelExplorer from "./components/ModelExplorer";
 import ModelDetail from "./components/ModelDetail";
 import Manifesto from "./components/Manifesto";
@@ -17,6 +17,7 @@ import AboutView from "./components/AboutView";
 import PaperDetail from "./components/PaperDetail";
 import Home from "./components/Home";
 import NotFound from "./components/NotFound";
+import Tokenizers from "./components/Tokenizers";
 
 const LOGO_LETTERS: { ch: string; keep: boolean }[] = [
   { ch: "H", keep: true },
@@ -29,7 +30,6 @@ const LOGO_LETTERS: { ch: string; keep: boolean }[] = [
 
 const NAV_LINKS: { label: string; to: string }[] = [
   { label: "Home", to: "/" },
-  { label: "Models", to: "/models" },
   { label: "Research", to: "/research" },
   { label: "Papers", to: "/papers" },
   { label: "Docs", to: "/docs" },
@@ -54,6 +54,18 @@ function ScrollToTop() {
 
 function Header({ scrolled }: { scrolled: boolean }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProductsMenuOpen, setIsProductsMenuOpen] = useState(false);
+  const productsMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const productsCloseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const openProductsMenu = () => {
+    if (productsCloseTimeout.current) clearTimeout(productsCloseTimeout.current);
+    setIsProductsMenuOpen(true);
+  };
+  const scheduleProductsMenuClose = () => {
+    productsCloseTimeout.current = setTimeout(() => setIsProductsMenuOpen(false), 160);
+  };
 
   useEffect(() => {
     if (!isMobileMenuOpen) return;
@@ -62,9 +74,41 @@ function Header({ scrolled }: { scrolled: boolean }) {
     return () => window.removeEventListener("scroll", close);
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    const closeMenusOnScroll = () => {
+      setIsProductsMenuOpen(false);
+      setIsMobileMenuOpen(false);
+    };
+
+    window.addEventListener("scroll", closeMenusOnScroll, { passive: true });
+    return () => window.removeEventListener("scroll", closeMenusOnScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!isProductsMenuOpen) return;
+
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (!productsMenuRef.current?.contains(target) && !mobileMenuRef.current?.contains(target)) {
+        setIsProductsMenuOpen(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsProductsMenuOpen(false);
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isProductsMenuOpen]);
+
   return (
     <>
-      <header id="main-header" className="max-w-7xl mx-auto w-full mt-4 px-6 md:px-12 py-5 flex items-center justify-between sticky top-4 rounded-2xl bg-[#FAF9F6]/80 backdrop-blur-md z-30 border border-zinc-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+      <div ref={productsMenuRef} className="relative max-w-7xl mx-auto w-full mt-4 sticky top-4 z-30">
+      <header id="main-header" className="relative w-full px-6 md:px-12 py-5 flex items-center justify-between rounded-2xl bg-[#FAF9F6]/80 backdrop-blur-md border border-zinc-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
         <div className="flex flex-col">
           <Link
             to="/"
@@ -89,7 +133,28 @@ function Header({ scrolled }: { scrolled: boolean }) {
 
         {/* Desktop Navigation Links */}
         <nav className="hidden md:flex items-center space-x-10 text-sm font-mono font-bold uppercase tracking-wider">
-          {NAV_LINKS.map((link) => (
+          {NAV_LINKS.slice(0, 1).map((link) => (
+            <NavLink key={link.to} to={link.to} end={link.to === "/"} className={navClass}>
+              {link.label}
+            </NavLink>
+          ))}
+          <div
+            className="group"
+            onMouseEnter={openProductsMenu}
+            onMouseLeave={scheduleProductsMenuClose}
+          >
+            <button
+              type="button"
+              onClick={() => setIsProductsMenuOpen((open) => !open)}
+              className={`flex items-center gap-1 pb-1 transition-colors ${isProductsMenuOpen ? "text-black" : "text-zinc-500 hover:text-black"}`}
+              aria-haspopup="true"
+              aria-expanded={isProductsMenuOpen}
+            >
+              Products
+              <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
+            </button>
+          </div>
+          {NAV_LINKS.slice(1).map((link) => (
             <NavLink key={link.to} to={link.to} end={link.to === "/"} className={navClass}>
               {link.label}
             </NavLink>
@@ -108,14 +173,106 @@ function Header({ scrolled }: { scrolled: boolean }) {
         </div>
       </header>
 
+      {/* This sits outside the navbar's backdrop-filter stacking context so the
+          hero content underneath can be blurred by the frosted glass surface. */}
+      <AnimatePresence>
+        {isProductsMenuOpen && <motion.div
+          onMouseEnter={openProductsMenu}
+          onMouseLeave={scheduleProductsMenuClose}
+          initial={{ opacity: 0, y: -10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.985 }}
+          transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          className="products-menu-glass hidden md:block absolute left-0 right-0 top-full z-40 mt-3 overflow-hidden rounded-2xl border border-zinc-200/80 text-zinc-950 shadow-2xl"
+        >
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-10 md:grid-cols-3 md:px-12">
+          <div className="text-sm font-normal normal-case tracking-normal text-zinc-500">
+            Products
+            <p className="mt-3 max-w-xs text-2xl font-bold leading-tight text-zinc-950">
+              Local intelligence, refined.
+            </p>
+          </div>
+          <div className="md:col-span-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <NavLink to="/models" onClick={() => setIsProductsMenuOpen(false)} className="product-card group/item relative overflow-hidden rounded-xl border border-zinc-200 bg-white/40 p-5 pr-24 text-left transition-colors hover:border-zinc-300 hover:bg-white/80">
+              <span className="product-clouds" aria-hidden="true">
+                <span className="product-cloud product-cloud-one" />
+                <span className="product-cloud product-cloud-two" />
+                <span className="product-cloud product-cloud-three" />
+              </span>
+              <Sun aria-hidden="true" className="pointer-events-none absolute -bottom-8 right-4 h-12 w-12 text-[#F27D26] opacity-0 transition-all duration-500 ease-out group-hover/item:bottom-8 group-hover/item:rotate-45 group-hover/item:opacity-20" strokeWidth={1.5} />
+              <span className="block text-lg text-zinc-950">Models</span>
+              <span className="mt-2 block text-sm font-normal normal-case tracking-normal text-zinc-500 group-hover/item:text-zinc-700">
+                Explore Helios models built for local hardware.
+              </span>
+            </NavLink>
+            <NavLink to="/tokenizers" onClick={() => setIsProductsMenuOpen(false)} className="product-card group/item relative overflow-hidden rounded-xl border border-zinc-200 bg-white/40 p-5 pr-24 text-left transition-colors hover:border-zinc-300 hover:bg-white/80">
+              <span className="product-stars" aria-hidden="true">
+                <span className="product-shooting-star product-shooting-star-one" />
+                <span className="product-shooting-star product-shooting-star-two" />
+                <span className="product-shooting-star product-shooting-star-three" />
+              </span>
+              <Moon aria-hidden="true" className="pointer-events-none absolute -bottom-8 right-4 h-12 w-12 text-indigo-500 opacity-0 transition-all duration-500 ease-out group-hover/item:bottom-8 group-hover/item:-rotate-12 group-hover/item:opacity-20" strokeWidth={1.5} />
+              <span className="block text-lg text-zinc-950">Tokenizers</span>
+              <span className="mt-2 block text-sm font-normal normal-case tracking-normal text-zinc-500 group-hover/item:text-zinc-700">
+                Tokenization tools and resources for Helios.
+              </span>
+            </NavLink>
+          </div>
+        </div>
+        </motion.div>}
+      </AnimatePresence>
+      </div>
+
       {/* Mobile Navigation Dropdown Menu */}
-      <motion.div
+          <motion.div
+        ref={mobileMenuRef}
         initial={{ height: 0, opacity: 0 }}
         animate={{ height: isMobileMenuOpen ? "auto" : 0, opacity: isMobileMenuOpen ? 1 : 0 }}
-        className="md:hidden overflow-hidden bg-[#FAF9F6] border-b border-zinc-200 border-x px-6 fixed w-full left-0 top-24 z-20 rounded-b-2xl"
+        className="md:hidden overflow-hidden bg-[#FAF9F6]/80 backdrop-blur-md border-b border-zinc-200 border-x px-6 fixed w-full left-0 top-24 z-20 rounded-b-2xl"
       >
         <div className="flex flex-col space-y-4 py-6 pb-8 text-sm font-mono font-bold uppercase tracking-wider items-start">
-          {NAV_LINKS.map((link) => (
+          {NAV_LINKS.slice(0, 1).map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.to === "/"}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={({ isActive }) =>
+                `text-left pb-0.5 border-b-2 ${
+                  isActive
+                    ? "text-black border-black"
+                    : "text-zinc-500 hover:text-black border-transparent"
+                }`
+              }
+            >
+              {link.label}
+            </NavLink>
+          ))}
+          <div className="flex flex-col items-start gap-4">
+            <button
+              type="button"
+              onClick={() => setIsProductsMenuOpen((open) => !open)}
+              className="flex items-center gap-1 text-zinc-500 hover:text-black"
+              aria-expanded={isProductsMenuOpen}
+            >
+              Products
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isProductsMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+            <AnimatePresence initial={false}>
+              {isProductsMenuOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="flex flex-col items-start gap-4 overflow-hidden pl-4 text-xs"
+                >
+                  <NavLink to="/models" onClick={() => setIsMobileMenuOpen(false)} className={navClass}>Models</NavLink>
+                  <NavLink to="/tokenizers" onClick={() => setIsMobileMenuOpen(false)} className={navClass}>Tokenizers</NavLink>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          {NAV_LINKS.slice(1).map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
@@ -218,6 +375,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/models" element={<ModelExplorer />} />
           <Route path="/models/:slug" element={<ModelDetail />} />
+          <Route path="/tokenizers" element={<Tokenizers />} />
           <Route path="/research" element={<ResearchView />} />
           <Route path="/papers" element={<PapersView />} />
           <Route path="/docs" element={<DocsView />} />

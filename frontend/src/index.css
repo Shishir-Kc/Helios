@@ -53,3 +53,116 @@ button, select, input, textarea {
   font-family: "Minecraft", monospace !important;
 }
 
+/* Frosted glass surface for the open Products menu. The menu stays readable
+   while content behind it, such as the hero heading, becomes softly blurred. */
+.products-menu-glass {
+  background: rgba(250, 249, 246, 0.78);
+  -webkit-backdrop-filter: blur(12px) saturate(115%);
+  backdrop-filter: blur(12px) saturate(115%);
+}
+
+.product-clouds,
+.product-stars {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 350ms ease;
+}
+
+.product-card:hover .product-clouds,
+.product-card:hover .product-stars {
+  opacity: 1;
+}
+
+.product-cloud {
+  position: absolute;
+  width: 76px;
+  height: 17px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.22);
+  filter: blur(1px);
+  animation: cloud-drift 14s linear infinite;
+}
+
+.product-cloud::before,
+.product-cloud::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.product-cloud::before {
+  left: 13px;
+  width: 27px;
+  height: 27px;
+}
+
+.product-cloud::after {
+  left: 36px;
+  width: 21px;
+  height: 21px;
+}
+
+.product-cloud-one {
+  top: 25%;
+  left: -80px;
+}
+
+.product-cloud-two {
+  top: 58%;
+  left: -150px;
+  transform: scale(0.7);
+  animation-delay: -3s;
+}
+
+.product-cloud-three {
+  top: 12%;
+  left: -210px;
+  transform: scale(0.5);
+  animation-delay: -5s;
+}
+
+@keyframes cloud-drift {
+  from { margin-left: 0; }
+  to { margin-left: calc(100% + 300px); }
+}
+
+.product-shooting-star {
+  position: absolute;
+  width: 42px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), rgba(255, 255, 255, 0.95));
+  box-shadow: 0 0 7px rgba(129, 140, 248, 0.8);
+  opacity: 0;
+  transform: rotate(-35deg);
+  animation: shooting-star 2.4s linear infinite;
+}
+
+.product-shooting-star-one {
+  top: 8%;
+  right: 4%;
+}
+
+.product-shooting-star-two {
+  top: 28%;
+  right: 42%;
+  animation-delay: -0.9s;
+}
+
+.product-shooting-star-three {
+  top: 2%;
+  right: 68%;
+  animation-delay: -1.7s;
+}
+
+@keyframes shooting-star {
+  0% { opacity: 0; transform: translate(35px, -25px) rotate(-35deg); }
+  12% { opacity: 0.85; }
+  55% { opacity: 0.35; }
+  100% { opacity: 0; transform: translate(-120px, 115px) rotate(-35deg); }
+}
