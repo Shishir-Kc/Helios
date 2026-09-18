@@ -65,6 +65,7 @@ export default function ResearchView() {
             <Link
               key={paper.slug}
               to={paperPath(paper)}
+              state={{ from: "/research" }}
               className="text-left w-full p-6 bg-white border border-zinc-200 rounded-lg hover:border-[#F27D26]/40 transition-all shadow-xs block cursor-pointer group"
             >
               {/* Paper Meta */}

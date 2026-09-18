@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import Markdown from "./Markdown";
 import Loading from "./Loading";
@@ -20,6 +20,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export default function PaperDetail({ category, slug, basePath }: PaperDetailProps) {
   const params = useParams();
+  const location = useLocation();
   const paperSlug = slug ?? params.slug ?? "";
   const [paper, setPaper] = useState<Paper | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,7 +49,7 @@ export default function PaperDetail({ category, slug, basePath }: PaperDetailPro
   }, [slug]);
 
   const label = CATEGORY_LABELS[category] ?? category;
-  const parentPath = basePath ?? `/${category}`;
+  const parentPath = (location.state as { from?: string } | null)?.from ?? basePath ?? `/${category}`;
 
   return (
     <div className="max-w-3xl mx-auto w-full px-6 md:px-12 py-12">
