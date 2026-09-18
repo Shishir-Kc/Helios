@@ -59,10 +59,9 @@ export interface Tokenizer {
   updated_at: string;
 }
 
-export async function fetchPapers(category: string): Promise<PaperListItem[]> {
-  const res = await fetch(
-    `${API_BASE}/helios/papers?category=${encodeURIComponent(category)}`,
-  );
+export async function fetchPapers(category?: string): Promise<PaperListItem[]> {
+  const query = category ? `?category=${encodeURIComponent(category)}` : "";
+  const res = await fetch(`${API_BASE}/helios/papers${query}`);
   if (!res.ok) throw new Error("Failed to fetch");
   const data = await res.json();
   return data.papers ?? [];

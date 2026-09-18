@@ -12,7 +12,7 @@ export default function ResearchView() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchPapers("research")
+    fetchPapers()
       .then((p) => {
         if (!cancelled) {
           setPapers(p);
@@ -29,6 +29,11 @@ export default function ResearchView() {
       cancelled = true;
     };
   }, []);
+
+  const paperPath = (paper: PaperListItem): string => {
+    if (paper.category === "tokenizer") return `/papers/tokenizer/${paper.slug}`;
+    return `/${paper.category}/${paper.slug}`;
+  };
 
   return (
     <div className="max-w-3xl mx-auto w-full px-6 md:px-12 py-12">
@@ -59,13 +64,16 @@ export default function ResearchView() {
           papers.map((paper) => (
             <Link
               key={paper.slug}
-              to={`/research/${paper.slug}`}
+              to={paperPath(paper)}
               className="text-left w-full p-6 bg-white border border-zinc-200 rounded-lg hover:border-[#F27D26]/40 transition-all shadow-xs block cursor-pointer group"
             >
               {/* Paper Meta */}
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-[10px] font-mono font-bold text-[#F27D26] uppercase tracking-wider">
                   {formatDate(paper.created_at)}
+                </span>
+                <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider">
+                  {paper.category}
                 </span>
               </div>
 
