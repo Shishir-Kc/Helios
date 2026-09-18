@@ -46,6 +46,7 @@ const MAX_TOKENIZER_SIZE = 50 * 1024 * 1024
 
 function allowedOrigin(origin: string): string {
   if (origin === 'https://helios.shishirkhatri.com.np') return origin
+  if (origin === 'https://studio.helios.shishirkhatri.com.np') return origin
   if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return origin
   if (origin.endsWith('.helios-6ho.pages.dev') || origin.endsWith('.helios-studio-1wi.pages.dev')) return origin
   return ''
