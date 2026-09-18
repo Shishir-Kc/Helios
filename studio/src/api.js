@@ -134,3 +134,30 @@ export function deleteFamily(slug) {
     method: 'DELETE',
   })
 }
+
+export function listTokenizers() {
+  return request('tokenizers', '')
+}
+
+export function uploadTokenizer({ name, slug, banner_image_url, github_url, file }) {
+  const body = new FormData()
+  body.append('name', name)
+  body.append('slug', slug)
+  if (banner_image_url) body.append('banner_image_url', banner_image_url)
+  if (github_url) body.append('github_url', github_url)
+  body.append('file', file)
+  return request('tokenizers', '', { method: 'POST', body })
+}
+
+export function deleteTokenizer(slug) {
+  return request('tokenizers', `/${slug}`, { method: 'DELETE' })
+}
+
+export function updateTokenizer(slug, { name, banner_image_url, github_url, file }) {
+  const body = new FormData()
+  body.append('name', name)
+  body.append('banner_image_url', banner_image_url ?? '')
+  body.append('github_url', github_url ?? '')
+  if (file) body.append('file', file)
+  return request('tokenizers', `/${slug}`, { method: 'PUT', body })
+}

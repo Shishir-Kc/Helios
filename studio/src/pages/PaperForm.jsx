@@ -4,7 +4,12 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { getPaper, createPaper, updatePaper } from '../api.js'
 
-const CATEGORIES = ['papers', 'research', 'docs', 'models']
+const CATEGORIES = [
+  { value: 'papers', label: 'Papers' },
+  { value: 'research', label: 'Research' },
+  { value: 'docs', label: 'Docs' },
+  { value: 'tokenizer', label: 'Tokenizer' },
+]
 
 function slugify(text) {
   return text
@@ -185,7 +190,7 @@ export default function PaperForm() {
                 onChange={handleChange('category')}
               >
                 {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat.value} value={cat.value}>{cat.label}</option>
                 ))}
               </select>
               {errors.category && <div className="field-error">{errors.category}</div>}

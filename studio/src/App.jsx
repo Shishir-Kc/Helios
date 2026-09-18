@@ -8,6 +8,7 @@ import ModelsDashboard from './pages/ModelsDashboard.jsx'
 import ModelForm from './pages/ModelForm.jsx'
 import FamiliesDashboard from './pages/FamiliesDashboard.jsx'
 import FamilyForm from './pages/FamilyForm.jsx'
+import TokenizersDashboard from './pages/TokenizersDashboard.jsx'
 
 function RequireAuth({ children }) {
   if (!isAuthenticated()) {
@@ -127,6 +128,9 @@ function Layout({ onLogout }) {
             <NavLink to="/families" className={({ isActive }) => (isActive ? 'studio-nav-link active' : 'studio-nav-link')}>
               Families
             </NavLink>
+            <NavLink to="/tokenizers" className={({ isActive }) => (isActive ? 'studio-nav-link active' : 'studio-nav-link')}>
+              Tokenizers
+            </NavLink>
           </nav>
         </div>
         <div className="studio-header-right">
@@ -144,6 +148,7 @@ function Layout({ onLogout }) {
           <Route path="/families" element={<FamiliesDashboardWrapper />} />
           <Route path="/families/new" element={<FamilyForm />} />
           <Route path="/families/:slug/edit" element={<FamilyForm />} />
+          <Route path="/tokenizers" element={<TokenizersDashboard />} />
         </Routes>
       </main>
     </div>

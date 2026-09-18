@@ -4,7 +4,7 @@ import { ArrowRight, AlertTriangle } from "lucide-react";
 import { fetchPapers, formatDate, type PaperListItem } from "../api";
 import Loading from "./Loading";
 
-export default function PapersView() {
+export default function PapersView({ category = "papers", title, description }: { category?: string; title?: string; description?: string }) {
   const [papers, setPapers] = useState<PaperListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +12,7 @@ export default function PapersView() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchPapers("papers")
+    fetchPapers(category)
       .then((p) => {
         if (!cancelled) {
           setPapers(p);
@@ -28,14 +28,14 @@ export default function PapersView() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [category]);
 
   return (
     <div className="max-w-5xl mx-auto w-full px-6 md:px-12 py-12">
       {/* Title Header */}
       <div className="mb-8 md:mb-10 space-y-2 text-center">
-        <h2 className="text-3xl md:text-4xl font-serif text-zinc-950 tracking-tight">Technical Publications</h2>
-        <p className="text-zinc-500 font-sans md:text-lg max-w-xl mx-auto">Peer-reviewed manuscripts and technical reports submitted to leading machine learning conferences.</p>
+        <h2 className="text-3xl md:text-4xl font-serif text-zinc-950 tracking-tight">{title ?? "Technical Publications"}</h2>
+        <p className="text-zinc-500 font-sans md:text-lg max-w-xl mx-auto">{description ?? "Peer-reviewed manuscripts and technical reports submitted to leading machine learning conferences."}</p>
       </div>
 
       {loading && <Loading />}
@@ -59,7 +59,7 @@ export default function PapersView() {
           {papers.map((paper) => (
             <Link
               key={paper.slug}
-              to={`/papers/${paper.slug}`}
+              to={category === "papers" ? `/papers/${paper.slug}` : `/papers/${category}/${paper.slug}`}
               className="text-left p-6 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between hover:border-[#F27D26]/40 transition-all shadow-sm cursor-pointer group"
             >
               <div>

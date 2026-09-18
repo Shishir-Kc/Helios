@@ -38,9 +38,9 @@ export interface UpdatePaperInput {
   image_url?: string | null
 }
 
-const VALID_CATEGORIES = ['research', 'docs', 'papers']
+const VALID_CATEGORIES = ['research', 'docs', 'papers', 'tokenizer']
 
-export function isValidCategory(cat: string): cat is 'research' | 'docs' | 'papers' {
+export function isValidCategory(cat: string): cat is 'research' | 'docs' | 'papers' | 'tokenizer' {
   return VALID_CATEGORIES.includes(cat)
 }
 
@@ -376,4 +376,78 @@ export function deleteFamily(db: D1Database, slug: string): Promise<boolean> {
     .bind(slug)
     .run()
     .then((r) => r.success)
+}
+
+// --- Tokenizers ---
+
+export interface Tokenizer {
+  id: number
+  name: string
+  slug: string
+  filename: string
+  content_type: string
+  size_bytes: number
+  r2_key: string
+  banner_image_url: string | null
+  github_url: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateTokenizerInput {
+  name: string
+  slug: string
+  filename: string
+  content_type: string
+  size_bytes: number
+  r2_key: string
+  banner_image_url?: string | null
+  github_url?: string | null
+}
+
+export interface UpdateTokenizerInput {
+  name?: string
+  filename?: string
+  content_type?: string
+  size_bytes?: number
+  r2_key?: string
+  banner_image_url?: string | null
+  github_url?: string | null
+}
+
+export function getAllTokenizers(db: D1Database): Promise<Tokenizer[]> {
+  return db.prepare('SELECT * FROM tokenizers ORDER BY created_at DESC').all<Tokenizer>().then((r) => r.results)
+}
+
+export function getTokenizerBySlug(db: D1Database, slug: string): Promise<Tokenizer | null> {
+  return db.prepare('SELECT * FROM tokenizers WHERE slug = ?').bind(slug).first<Tokenizer>()
+}
+
+export function createTokenizer(db: D1Database, input: CreateTokenizerInput): Promise<boolean> {
+  return db
+    .prepare('INSERT INTO tokenizers (name, slug, filename, content_type, size_bytes, r2_key, banner_image_url, github_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .bind(input.name, input.slug, input.filename, input.content_type, input.size_bytes, input.r2_key, input.banner_image_url ?? null, input.github_url ?? null)
+    .run()
+    .then((r) => r.success)
+}
+
+export function deleteTokenizer(db: D1Database, slug: string): Promise<boolean> {
+  return db.prepare('DELETE FROM tokenizers WHERE slug = ?').bind(slug).run().then((r) => r.success)
+}
+
+export function updateTokenizer(db: D1Database, slug: string, input: UpdateTokenizerInput): Promise<boolean> {
+  const sets: string[] = []
+  const values: unknown[] = []
+  const add = (column: string, value: unknown) => { if (value !== undefined) { sets.push(`${column} = ?`); values.push(value) } }
+  add('name', input.name)
+  add('filename', input.filename)
+  add('content_type', input.content_type)
+  add('size_bytes', input.size_bytes)
+  add('r2_key', input.r2_key)
+  add('banner_image_url', input.banner_image_url)
+  add('github_url', input.github_url)
+  if (!sets.length) return Promise.resolve(false)
+  sets.push("updated_at = datetime('now')")
+  values.push(slug)
+  return db.prepare(`UPDATE tokenizers SET ${sets.join(', ')} WHERE slug = ?`).bind(...values).run().then((r) => r.success)
 }

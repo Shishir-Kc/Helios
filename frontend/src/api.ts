@@ -47,6 +47,18 @@ export interface Family {
   updated_at: string;
 }
 
+export interface Tokenizer {
+  id: number;
+  name: string;
+  slug: string;
+  filename: string;
+  content_type: string;
+  size_bytes: number;
+  banner_image_url?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export async function fetchPapers(category: string): Promise<PaperListItem[]> {
   const res = await fetch(
     `${API_BASE}/helios/papers?category=${encodeURIComponent(category)}`,
@@ -71,6 +83,19 @@ export async function fetchFamilies(): Promise<Family[]> {
   if (!res.ok) throw new Error("Failed to fetch");
   const data = await res.json();
   return data.families ?? [];
+}
+
+export async function fetchTokenizers(): Promise<Tokenizer[]> {
+  const res = await fetch(`${API_BASE}/helios/tokenizers`);
+  if (!res.ok) throw new Error("Failed to fetch tokenizers");
+  const data = await res.json();
+  return data.tokenizers ?? [];
+}
+
+export async function fetchTokenizerFile(slug: string): Promise<string> {
+  const res = await fetch(`${API_BASE}/helios/tokenizers/${encodeURIComponent(slug)}`);
+  if (!res.ok) throw new Error("Failed to load tokenizer file");
+  return res.text();
 }
 
 export async function fetchModel(slug: string): Promise<Model> {

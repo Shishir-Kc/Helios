@@ -8,15 +8,17 @@ import { fetchPaper, formatDate, type Paper } from "../api";
 interface PaperDetailProps {
   category: string;
   slug?: string;
+  basePath?: string;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
   papers: "Papers",
   research: "Research",
   docs: "Docs",
+  tokenizer: "Tokenizer",
 };
 
-export default function PaperDetail({ category, slug }: PaperDetailProps) {
+export default function PaperDetail({ category, slug, basePath }: PaperDetailProps) {
   const params = useParams();
   const paperSlug = slug ?? params.slug ?? "";
   const [paper, setPaper] = useState<Paper | null>(null);
@@ -46,11 +48,12 @@ export default function PaperDetail({ category, slug }: PaperDetailProps) {
   }, [slug]);
 
   const label = CATEGORY_LABELS[category] ?? category;
+  const parentPath = basePath ?? `/${category}`;
 
   return (
     <div className="max-w-3xl mx-auto w-full px-6 md:px-12 py-12">
       <Link
-        to={`/${category}`}
+        to={parentPath}
         className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-500 hover:text-[#F27D26] transition-colors cursor-pointer mb-8 flex items-center gap-2"
       >
         <ArrowLeft className="w-4 h-4" /> Back to {label}
@@ -64,7 +67,7 @@ export default function PaperDetail({ category, slug }: PaperDetailProps) {
           <div>
             <p className="text-sm font-bold font-mono">{error}</p>
             <Link
-              to={`/${category}`}
+              to={parentPath}
               className="text-xs font-mono text-zinc-500 hover:text-zinc-900 mt-2 underline cursor-pointer"
             >
               ← Back
