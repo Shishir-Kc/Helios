@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, AlertTriangle } from "lucide-react";
-import { fetchResearch, formatDate, type PaperListItem } from "../api";
+import { fetchResearch, fetchTokenizerResearch, formatDate, type PaperListItem } from "../api";
 import Loading from "./Loading";
 
-export default function ResearchView() {
+interface ResearchViewProps {
+  tokenizerResearch?: boolean;
+}
+
+export default function ResearchView({ tokenizerResearch = false }: ResearchViewProps) {
   const [papers, setPapers] = useState<PaperListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +16,7 @@ export default function ResearchView() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchResearch()
+    (tokenizerResearch ? fetchTokenizerResearch() : fetchResearch())
       .then((p) => {
         if (!cancelled) {
           setPapers(p);
@@ -28,14 +32,20 @@ export default function ResearchView() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [tokenizerResearch]);
+
+  const basePath = tokenizerResearch ? "/tokenizer-research" : "/research";
+  const title = tokenizerResearch ? "Tokenizer Research" : "On-Device Intelligence Studies";
+  const description = tokenizerResearch
+    ? "Articles, implementation notes, and research about tokenizers and tokenization."
+    : "Our ongoing investigation into neural weight compression, native edge runtimes, and local context optimization.";
 
   return (
     <div className="max-w-3xl mx-auto w-full px-6 md:px-12 py-12">
       {/* Title Header */}
       <div className="mb-8 md:mb-10 space-y-2 text-center">
-        <h2 className="text-3xl md:text-4xl font-serif text-zinc-950 tracking-tight">On-Device Intelligence Studies</h2>
-        <p className="text-zinc-500 font-sans md:text-lg max-w-xl mx-auto">Our ongoing investigation into neural weight compression, native edge runtimes, and local context optimization.</p>
+        <h2 className="text-3xl md:text-4xl font-serif text-zinc-950 tracking-tight">{title}</h2>
+        <p className="text-zinc-500 font-sans md:text-lg max-w-xl mx-auto">{description}</p>
       </div>
 
       {loading && <Loading />}
@@ -59,8 +69,8 @@ export default function ResearchView() {
           papers.map((paper) => (
             <Link
               key={paper.slug}
-              to={`/research/${paper.slug}`}
-              state={{ from: "/research" }}
+              to={`${basePath}/${paper.slug}`}
+              state={{ from: basePath }}
               className="text-left w-full p-6 bg-white border border-zinc-200 rounded-lg hover:border-[#F27D26]/40 transition-all shadow-xs block cursor-pointer group"
             >
               {/* Paper Meta */}
@@ -83,7 +93,7 @@ export default function ResearchView() {
 
               <div className="mt-4 pt-3 border-t border-zinc-100 flex items-center justify-between">
                 <span className="text-xs text-zinc-900 group-hover:text-[#F27D26] font-mono font-bold flex items-center gap-1 cursor-pointer transition-colors">
-                  Read Full Study <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                  {tokenizerResearch ? "Read Article" : "Read Full Study"} <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                 </span>
               </div>
             </Link>
