@@ -70,6 +70,10 @@ export function fetchResearch(): Promise<PaperListItem[]> {
   return fetchPaperList("research");
 }
 
+export function fetchTokenizerResearch(): Promise<PaperListItem[]> {
+  return fetchPaperList("tokenizer-research");
+}
+
 export function fetchPapers(): Promise<PaperListItem[]> {
   return fetchPaperList("papers");
 }
@@ -134,6 +138,10 @@ async function fetchPaperByPath(path: string): Promise<Paper> {
 
 export function fetchResearchPaper(slug: string): Promise<Paper> {
   return fetchPaperByPath(`research/${encodeURIComponent(slug)}`);
+}
+
+export function fetchTokenizerResearchPaper(slug: string): Promise<Paper> {
+  return fetchPaperByPath(`tokenizer-research/${encodeURIComponent(slug)}`);
 }
 
 export function fetchPaper(slug: string): Promise<Paper> {
