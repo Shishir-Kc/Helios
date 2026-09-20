@@ -3,7 +3,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import Markdown from "./Markdown";
 import Loading from "./Loading";
-import { fetchDoc, fetchPaper, fetchResearchPaper, formatDate, type Paper } from "../api";
+import { fetchDoc, fetchPaper, fetchResearchPaper, fetchTokenizerResearchPaper, formatDate, type Paper } from "../api";
 
 interface PaperDetailProps {
   category: string;
@@ -16,6 +16,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   research: "Research",
   docs: "Docs",
   tokenizer: "Tokenizer",
+  "tokenizer-research": "Tokenizer Research",
 };
 
 export default function PaperDetail({ category, slug, basePath }: PaperDetailProps) {
@@ -30,7 +31,13 @@ export default function PaperDetail({ category, slug, basePath }: PaperDetailPro
     let cancelled = false;
     setLoading(true);
     setError(null);
-    const fetcher = category === "research" ? fetchResearchPaper : category === "docs" ? fetchDoc : fetchPaper;
+    const fetcher = category === "research"
+      ? fetchResearchPaper
+      : category === "tokenizer-research"
+        ? fetchTokenizerResearchPaper
+        : category === "docs"
+          ? fetchDoc
+          : fetchPaper;
     fetcher(paperSlug)
       .then((p) => {
         if (!cancelled) {
