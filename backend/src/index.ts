@@ -84,6 +84,26 @@ app.get('/api/helios/research/:slug', async (c) => {
   }
 })
 
+app.get('/api/helios/tokenizer-research', async (c) => {
+  try {
+    return c.json({ papers: await getPapersByCategory(c.env.DB, 'tokenizer') })
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch tokenizer research' }, 500)
+  }
+})
+
+app.get('/api/helios/tokenizer-research/:slug', async (c) => {
+  try {
+    const paper = await getPaperBySlug(c.env.DB, c.req.param('slug'))
+    if (!paper || paper.category !== 'tokenizer') {
+      return c.json({ error: 'Tokenizer research paper not found' }, 404)
+    }
+    return c.json({ paper })
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch tokenizer research paper' }, 500)
+  }
+})
+
 app.get('/api/helios/docs', async (c) => {
   try {
     return c.json({ papers: await getPapersByCategory(c.env.DB, 'docs') })
