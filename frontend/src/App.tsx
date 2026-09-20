@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Link, NavLink, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Menu, X, Github, ChevronDown, Sun, Moon } from "lucide-react";
 import ModelExplorer from "./components/ModelExplorer";
@@ -30,10 +30,14 @@ const LOGO_LETTERS: { ch: string; keep: boolean }[] = [
 
 const NAV_LINKS: { label: string; to: string }[] = [
   { label: "Home", to: "/" },
+  { label: "About", to: "/about" },
+];
+
+const RESOURCE_LINKS: { label: string; to: string }[] = [
   { label: "Research", to: "/research" },
   { label: "Papers", to: "/papers" },
   { label: "Docs", to: "/docs" },
-  { label: "About", to: "/about" },
+  { label: "Tokenizer Research", to: "/tokenizer-research" },
 ];
 
 function navClass({ isActive }: { isActive: boolean }): string {
@@ -55,16 +59,28 @@ function ScrollToTop() {
 function Header({ scrolled }: { scrolled: boolean }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProductsMenuOpen, setIsProductsMenuOpen] = useState(false);
+  const [isResourcesMenuOpen, setIsResourcesMenuOpen] = useState(false);
   const productsMenuRef = useRef<HTMLDivElement>(null);
+  const resourcesMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const productsCloseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resourcesCloseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const openProductsMenu = () => {
     if (productsCloseTimeout.current) clearTimeout(productsCloseTimeout.current);
+    setIsResourcesMenuOpen(false);
     setIsProductsMenuOpen(true);
   };
   const scheduleProductsMenuClose = () => {
     productsCloseTimeout.current = setTimeout(() => setIsProductsMenuOpen(false), 160);
+  };
+  const openResourcesMenu = () => {
+    if (resourcesCloseTimeout.current) clearTimeout(resourcesCloseTimeout.current);
+    setIsProductsMenuOpen(false);
+    setIsResourcesMenuOpen(true);
+  };
+  const scheduleResourcesMenuClose = () => {
+    resourcesCloseTimeout.current = setTimeout(() => setIsResourcesMenuOpen(false), 160);
   };
 
   useEffect(() => {
@@ -77,6 +93,7 @@ function Header({ scrolled }: { scrolled: boolean }) {
   useEffect(() => {
     const closeMenusOnScroll = () => {
       setIsProductsMenuOpen(false);
+      setIsResourcesMenuOpen(false);
       setIsMobileMenuOpen(false);
     };
 
@@ -85,12 +102,13 @@ function Header({ scrolled }: { scrolled: boolean }) {
   }, []);
 
   useEffect(() => {
-    if (!isProductsMenuOpen) return;
+    if (!isProductsMenuOpen && !isResourcesMenuOpen) return;
 
     const closeOnOutsideClick = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (!productsMenuRef.current?.contains(target) && !mobileMenuRef.current?.contains(target)) {
+      if (!productsMenuRef.current?.contains(target) && !resourcesMenuRef.current?.contains(target) && !mobileMenuRef.current?.contains(target)) {
         setIsProductsMenuOpen(false);
+        setIsResourcesMenuOpen(false);
       }
     };
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -103,7 +121,7 @@ function Header({ scrolled }: { scrolled: boolean }) {
       document.removeEventListener("pointerdown", closeOnOutsideClick);
       document.removeEventListener("keydown", closeOnEscape);
     };
-  }, [isProductsMenuOpen]);
+  }, [isProductsMenuOpen, isResourcesMenuOpen]);
 
   return (
     <>
@@ -151,6 +169,26 @@ function Header({ scrolled }: { scrolled: boolean }) {
               aria-expanded={isProductsMenuOpen}
             >
               Products
+              <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
+            </button>
+          </div>
+          <div
+            className="group"
+            onMouseEnter={openResourcesMenu}
+            onMouseLeave={scheduleResourcesMenuClose}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                if (resourcesCloseTimeout.current) clearTimeout(resourcesCloseTimeout.current);
+                setIsResourcesMenuOpen((open) => !open);
+                setIsProductsMenuOpen(false);
+              }}
+              className={`flex items-center gap-1 pb-1 transition-colors ${isResourcesMenuOpen ? "text-black" : "text-zinc-500 hover:text-black"}`}
+              aria-haspopup="true"
+              aria-expanded={isResourcesMenuOpen}
+            >
+              Resources
               <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
             </button>
           </div>
@@ -212,7 +250,7 @@ function Header({ scrolled }: { scrolled: boolean }) {
                 <span className="product-shooting-star product-shooting-star-three" />
               </span>
               <Moon aria-hidden="true" className="pointer-events-none absolute -bottom-8 right-4 h-12 w-12 text-indigo-500 opacity-0 transition-all duration-500 ease-out group-hover/item:bottom-8 group-hover/item:-rotate-12 group-hover/item:opacity-20" strokeWidth={1.5} />
-              <span className="block text-lg text-zinc-950">Tokenizers</span>
+              <span className="block text-lg text-zinc-950">Tokenizer</span>
               <span className="mt-2 block text-sm font-normal normal-case tracking-normal text-zinc-500 group-hover/item:text-zinc-700">
                 Tokenization tools and resources for Helios.
               </span>
@@ -221,6 +259,46 @@ function Header({ scrolled }: { scrolled: boolean }) {
         </div>
         </motion.div>}
       </AnimatePresence>
+      <div ref={resourcesMenuRef} className="absolute left-0 right-0 top-full z-40">
+        <AnimatePresence>
+          {isResourcesMenuOpen && <motion.div
+            onMouseEnter={openResourcesMenu}
+            onMouseLeave={scheduleResourcesMenuClose}
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.985 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            className="products-menu-glass hidden md:block absolute left-0 right-0 top-0 mt-3 overflow-hidden rounded-2xl border border-zinc-200/80 text-zinc-950 shadow-2xl"
+          >
+            <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 py-10 md:grid-cols-3 md:px-12">
+              <div className="text-sm font-normal normal-case tracking-normal text-zinc-500">
+                Resources
+                <p className="mt-3 max-w-xs text-2xl font-bold leading-tight text-zinc-950">
+                  Ideas, evidence, and tools for the local AI ecosystem.
+                </p>
+              </div>
+              <div className="md:col-span-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <NavLink to="/research" onClick={() => setIsResourcesMenuOpen(false)} className="product-card group/item relative overflow-hidden rounded-xl border border-zinc-200 bg-white/40 p-5 pr-24 text-left transition-colors hover:border-zinc-300 hover:bg-white/80">
+                  <span className="block text-lg text-zinc-950">Research</span>
+                  <span className="mt-2 block text-sm font-normal normal-case tracking-normal text-zinc-500 group-hover/item:text-zinc-700">Read Helios studies on local intelligence.</span>
+                </NavLink>
+                <NavLink to="/papers" onClick={() => setIsResourcesMenuOpen(false)} className="product-card group/item relative overflow-hidden rounded-xl border border-zinc-200 bg-white/40 p-5 pr-24 text-left transition-colors hover:border-zinc-300 hover:bg-white/80">
+                  <span className="block text-lg text-zinc-950">Papers</span>
+                  <span className="mt-2 block text-sm font-normal normal-case tracking-normal text-zinc-500 group-hover/item:text-zinc-700">Browse publications and technical work.</span>
+                </NavLink>
+                <NavLink to="/docs" onClick={() => setIsResourcesMenuOpen(false)} className="product-card group/item relative overflow-hidden rounded-xl border border-zinc-200 bg-white/40 p-5 pr-24 text-left transition-colors hover:border-zinc-300 hover:bg-white/80">
+                  <span className="block text-lg text-zinc-950">Docs</span>
+                  <span className="mt-2 block text-sm font-normal normal-case tracking-normal text-zinc-500 group-hover/item:text-zinc-700">Find implementation and usage guidance.</span>
+                </NavLink>
+                <NavLink to="/tokenizer-research" onClick={() => setIsResourcesMenuOpen(false)} className="product-card group/item relative overflow-hidden rounded-xl border border-zinc-200 bg-white/40 p-5 pr-24 text-left transition-colors hover:border-zinc-300 hover:bg-white/80">
+                  <span className="block text-lg text-zinc-950">Tokenizer Research</span>
+                  <span className="mt-2 block text-sm font-normal normal-case tracking-normal text-zinc-500 group-hover/item:text-zinc-700">Explore tokenizer articles and implementation notes.</span>
+                </NavLink>
+              </div>
+            </div>
+          </motion.div>}
+        </AnimatePresence>
+      </div>
       </div>
 
       {/* Mobile Navigation Dropdown Menu */}
@@ -251,7 +329,7 @@ function Header({ scrolled }: { scrolled: boolean }) {
           <div className="flex flex-col items-start gap-4">
             <button
               type="button"
-              onClick={() => setIsProductsMenuOpen((open) => !open)}
+              onClick={() => { setIsResourcesMenuOpen(false); setIsProductsMenuOpen((open) => !open); }}
               className="flex items-center gap-1 text-zinc-500 hover:text-black"
               aria-expanded={isProductsMenuOpen}
             >
@@ -267,7 +345,25 @@ function Header({ scrolled }: { scrolled: boolean }) {
                   className="flex flex-col items-start gap-4 overflow-hidden pl-4 text-xs"
                 >
                   <NavLink to="/models" onClick={() => setIsMobileMenuOpen(false)} className={navClass}>Models</NavLink>
-                  <NavLink to="/tokenizers" onClick={() => setIsMobileMenuOpen(false)} className={navClass}>Tokenizers</NavLink>
+                  <NavLink to="/tokenizers" onClick={() => setIsMobileMenuOpen(false)} className={navClass}>Tokenizer</NavLink>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          <div className="flex flex-col items-start gap-4">
+            <button
+              type="button"
+              onClick={() => { setIsProductsMenuOpen(false); setIsResourcesMenuOpen((open) => !open); }}
+              className="flex items-center gap-1 text-zinc-500 hover:text-black"
+              aria-expanded={isResourcesMenuOpen}
+            >
+              Resources
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isResourcesMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+            <AnimatePresence initial={false}>
+              {isResourcesMenuOpen && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="flex flex-col items-start gap-4 overflow-hidden pl-4 text-xs">
+                  {RESOURCE_LINKS.map((link) => <NavLink key={link.to} to={link.to} onClick={() => setIsMobileMenuOpen(false)} className={navClass}>{link.label}</NavLink>)}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -354,6 +450,11 @@ function Footer() {
   );
 }
 
+function LegacyTokenizerResearchDetailRedirect() {
+  const { slug } = useParams();
+  return <Navigate to={`/tokenizer-research/${slug ?? ""}`} replace />;
+}
+
 export default function App() {
   const [scrolled, setScrolled] = useState(false);
 
@@ -378,13 +479,15 @@ export default function App() {
           <Route path="/tokenizers" element={<Tokenizers />} />
           <Route path="/research" element={<ResearchView />} />
           <Route path="/papers" element={<PapersView />} />
-          <Route path="/papers/tokenizer" element={<Navigate to="/tokenizers" replace />} />
+          <Route path="/tokenizer-research" element={<ResearchView tokenizerResearch />} />
+          <Route path="/papers/tokenizer" element={<Navigate to="/tokenizer-research" replace />} />
           <Route path="/docs" element={<DocsView />} />
           <Route path="/about" element={<AboutView />} />
           <Route path="/manifesto" element={<Manifesto />} />
           <Route path="/research/:slug" element={<PaperDetail category="research" />} />
           <Route path="/papers/:slug" element={<PaperDetail category="papers" />} />
-          <Route path="/papers/tokenizer/:slug" element={<Navigate to="/tokenizers" replace />} />
+          <Route path="/tokenizer-research/:slug" element={<PaperDetail category="tokenizer-research" basePath="/tokenizer-research" />} />
+          <Route path="/papers/tokenizer/:slug" element={<LegacyTokenizerResearchDetailRedirect />} />
           <Route path="/docs/:slug" element={<PaperDetail category="docs" />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
