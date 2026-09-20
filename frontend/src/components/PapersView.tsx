@@ -4,7 +4,7 @@ import { ArrowRight, AlertTriangle } from "lucide-react";
 import { fetchPapers, formatDate, type PaperListItem } from "../api";
 import Loading from "./Loading";
 
-export default function PapersView({ category = "papers", title, description }: { category?: string; title?: string; description?: string }) {
+export default function PapersView({ title, description }: { title?: string; description?: string }) {
   const [papers, setPapers] = useState<PaperListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,7 +12,7 @@ export default function PapersView({ category = "papers", title, description }: 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchPapers(category)
+    fetchPapers()
       .then((p) => {
         if (!cancelled) {
           setPapers(p);
@@ -28,7 +28,7 @@ export default function PapersView({ category = "papers", title, description }: 
     return () => {
       cancelled = true;
     };
-  }, [category]);
+  }, []);
 
   return (
     <div className="max-w-5xl mx-auto w-full px-6 md:px-12 py-12">
@@ -59,7 +59,7 @@ export default function PapersView({ category = "papers", title, description }: 
           {papers.map((paper) => (
             <Link
               key={paper.slug}
-              to={category === "papers" ? `/papers/${paper.slug}` : `/papers/${category}/${paper.slug}`}
+              to={`/papers/${paper.slug}`}
               className="text-left p-6 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between hover:border-[#F27D26]/40 transition-all shadow-sm cursor-pointer group"
             >
               <div>

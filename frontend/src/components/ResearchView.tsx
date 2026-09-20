@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, AlertTriangle } from "lucide-react";
-import { fetchPapers, formatDate, type PaperListItem } from "../api";
+import { fetchResearch, formatDate, type PaperListItem } from "../api";
 import Loading from "./Loading";
 
 export default function ResearchView() {
@@ -12,7 +12,7 @@ export default function ResearchView() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchPapers()
+    fetchResearch()
       .then((p) => {
         if (!cancelled) {
           setPapers(p);
@@ -29,11 +29,6 @@ export default function ResearchView() {
       cancelled = true;
     };
   }, []);
-
-  const paperPath = (paper: PaperListItem): string => {
-    if (paper.category === "tokenizer") return `/papers/tokenizer/${paper.slug}`;
-    return `/${paper.category}/${paper.slug}`;
-  };
 
   return (
     <div className="max-w-3xl mx-auto w-full px-6 md:px-12 py-12">
@@ -64,7 +59,7 @@ export default function ResearchView() {
           papers.map((paper) => (
             <Link
               key={paper.slug}
-              to={paperPath(paper)}
+              to={`/research/${paper.slug}`}
               state={{ from: "/research" }}
               className="text-left w-full p-6 bg-white border border-zinc-200 rounded-lg hover:border-[#F27D26]/40 transition-all shadow-xs block cursor-pointer group"
             >

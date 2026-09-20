@@ -65,19 +65,46 @@ app.get('/api/helios/verify', adminAuth, (c) => {
   return c.json({ ok: true })
 })
 
+app.get('/api/helios/research', async (c) => {
+  try {
+    return c.json({ papers: await getPapersByCategory(c.env.DB, 'research') })
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch papers' }, 500)
+  }
+})
+
+app.get('/api/helios/research/:slug', async (c) => {
+  try {
+    const slug = c.req.param('slug')
+    const paper = await getPaperBySlug(c.env.DB, slug)
+    if (!paper || paper.category !== 'research') return c.json({ error: 'Research paper not found' }, 404)
+    return c.json({ paper })
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch paper' }, 500)
+  }
+})
+
+app.get('/api/helios/docs', async (c) => {
+  try {
+    return c.json({ papers: await getPapersByCategory(c.env.DB, 'docs') })
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch docs' }, 500)
+  }
+})
+
+app.get('/api/helios/docs/:slug', async (c) => {
+  try {
+    const paper = await getPaperBySlug(c.env.DB, c.req.param('slug'))
+    if (!paper || paper.category !== 'docs') return c.json({ error: 'Doc not found' }, 404)
+    return c.json({ paper })
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch doc' }, 500)
+  }
+})
+
 app.get('/api/helios/papers', async (c) => {
   try {
-    const category = c.req.query('category')
-    let papers
-    if (category) {
-      if (!isValidCategory(category)) {
-        return c.json({ error: `Invalid category. Must be one of: research, docs, papers, tokenizer` }, 400)
-      }
-      papers = await getPapersByCategory(c.env.DB, category)
-    } else {
-      papers = await getAllPapers(c.env.DB)
-    }
-    return c.json({ papers })
+    return c.json({ papers: await getPapersByCategory(c.env.DB, 'papers') })
   } catch (err) {
     return c.json({ error: 'Failed to fetch papers' }, 500)
   }
@@ -85,8 +112,26 @@ app.get('/api/helios/papers', async (c) => {
 
 app.get('/api/helios/papers/:slug', async (c) => {
   try {
-    const slug = c.req.param('slug')
-    const paper = await getPaperBySlug(c.env.DB, slug)
+    const paper = await getPaperBySlug(c.env.DB, c.req.param('slug'))
+    if (!paper || paper.category !== 'papers') return c.json({ error: 'Paper not found' }, 404)
+    return c.json({ paper })
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch paper' }, 500)
+  }
+})
+
+// Studio needs to manage every paper category, including tokenizer-category articles.
+app.get('/api/helios/admin/papers', adminAuth, async (c) => {
+  try {
+    return c.json({ papers: await getAllPapers(c.env.DB) })
+  } catch (err) {
+    return c.json({ error: 'Failed to fetch papers' }, 500)
+  }
+})
+
+app.get('/api/helios/admin/papers/:slug', adminAuth, async (c) => {
+  try {
+    const paper = await getPaperBySlug(c.env.DB, c.req.param('slug'))
     if (!paper) return c.json({ error: 'Paper not found' }, 404)
     return c.json({ paper })
   } catch (err) {

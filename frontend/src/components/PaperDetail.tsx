@@ -3,7 +3,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import Markdown from "./Markdown";
 import Loading from "./Loading";
-import { fetchPaper, formatDate, type Paper } from "../api";
+import { fetchDoc, fetchPaper, fetchResearchPaper, formatDate, type Paper } from "../api";
 
 interface PaperDetailProps {
   category: string;
@@ -30,7 +30,8 @@ export default function PaperDetail({ category, slug, basePath }: PaperDetailPro
     let cancelled = false;
     setLoading(true);
     setError(null);
-    fetchPaper(paperSlug)
+    const fetcher = category === "research" ? fetchResearchPaper : category === "docs" ? fetchDoc : fetchPaper;
+    fetcher(paperSlug)
       .then((p) => {
         if (!cancelled) {
           setPaper(p);
@@ -46,7 +47,7 @@ export default function PaperDetail({ category, slug, basePath }: PaperDetailPro
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, category]);
 
   const label = CATEGORY_LABELS[category] ?? category;
   const parentPath = (location.state as { from?: string } | null)?.from ?? basePath ?? `/${category}`;

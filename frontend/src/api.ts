@@ -59,12 +59,23 @@ export interface Tokenizer {
   updated_at: string;
 }
 
-export async function fetchPapers(category?: string): Promise<PaperListItem[]> {
-  const query = category ? `?category=${encodeURIComponent(category)}` : "";
-  const res = await fetch(`${API_BASE}/helios/papers${query}`);
+async function fetchPaperList(path: string): Promise<PaperListItem[]> {
+  const res = await fetch(`${API_BASE}/helios/${path}`);
   if (!res.ok) throw new Error("Failed to fetch");
   const data = await res.json();
   return data.papers ?? [];
+}
+
+export function fetchResearch(): Promise<PaperListItem[]> {
+  return fetchPaperList("research");
+}
+
+export function fetchPapers(): Promise<PaperListItem[]> {
+  return fetchPaperList("papers");
+}
+
+export function fetchDocs(): Promise<PaperListItem[]> {
+  return fetchPaperList("docs");
 }
 
 export async function fetchModels(family?: string): Promise<ModelListItem[]> {
@@ -109,9 +120,9 @@ export async function fetchModel(slug: string): Promise<Model> {
   return data.model;
 }
 
-export async function fetchPaper(slug: string): Promise<Paper> {
+async function fetchPaperByPath(path: string): Promise<Paper> {
   const res = await fetch(
-    `${API_BASE}/helios/papers/${encodeURIComponent(slug)}`,
+    `${API_BASE}/helios/${path}`,
   );
   if (!res.ok) {
     if (res.status === 404) throw new Error("Not found");
@@ -119,6 +130,18 @@ export async function fetchPaper(slug: string): Promise<Paper> {
   }
   const data = await res.json();
   return data.paper;
+}
+
+export function fetchResearchPaper(slug: string): Promise<Paper> {
+  return fetchPaperByPath(`research/${encodeURIComponent(slug)}`);
+}
+
+export function fetchPaper(slug: string): Promise<Paper> {
+  return fetchPaperByPath(`papers/${encodeURIComponent(slug)}`);
+}
+
+export function fetchDoc(slug: string): Promise<Paper> {
+  return fetchPaperByPath(`docs/${encodeURIComponent(slug)}`);
 }
 
 export function formatDate(value: string): string {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, AlertTriangle } from "lucide-react";
-import { fetchPapers, formatDate, type PaperListItem } from "../api";
+import { fetchDocs, formatDate, type PaperListItem } from "../api";
 import Loading from "./Loading";
 
 export default function DocsView() {
@@ -12,7 +12,7 @@ export default function DocsView() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchPapers("docs")
+    fetchDocs()
       .then((p) => {
         if (!cancelled) {
           setPapers(p);

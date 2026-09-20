@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, Routes, Route, useLocation } from "react-router-dom";
+import { Link, NavLink, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Menu, X, Github, ChevronDown, Sun, Moon } from "lucide-react";
 import ModelExplorer from "./components/ModelExplorer";
@@ -378,13 +378,13 @@ export default function App() {
           <Route path="/tokenizers" element={<Tokenizers />} />
           <Route path="/research" element={<ResearchView />} />
           <Route path="/papers" element={<PapersView />} />
-          <Route path="/papers/tokenizer" element={<PapersView category="tokenizer" title="Tokenizer" description="Tokenizer releases, training notes, and implementation documentation." />} />
+          <Route path="/papers/tokenizer" element={<Navigate to="/tokenizers" replace />} />
           <Route path="/docs" element={<DocsView />} />
           <Route path="/about" element={<AboutView />} />
           <Route path="/manifesto" element={<Manifesto />} />
           <Route path="/research/:slug" element={<PaperDetail category="research" />} />
           <Route path="/papers/:slug" element={<PaperDetail category="papers" />} />
-          <Route path="/papers/tokenizer/:slug" element={<PaperDetail category="tokenizer" basePath="/papers/tokenizer" />} />
+          <Route path="/papers/tokenizer/:slug" element={<Navigate to="/tokenizers" replace />} />
           <Route path="/docs/:slug" element={<PaperDetail category="docs" />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

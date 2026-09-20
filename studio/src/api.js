@@ -52,11 +52,11 @@ async function request(resource, path, options = {}) {
 }
 
 export function listPapers() {
-  return request('papers', '')
+  return request('admin/papers', '')
 }
 
 export function getPaper(slug) {
-  return request('papers', `/${slug}`)
+  return request('admin/papers', `/${slug}`)
 }
 
 export function createPaper(input) {
