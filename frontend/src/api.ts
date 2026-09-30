@@ -55,6 +55,7 @@ export interface Tokenizer {
   content_type: string;
   size_bytes: number;
   banner_image_url?: string | null;
+  is_multilangual: boolean;
   created_at: string;
   updated_at: string;
 }
