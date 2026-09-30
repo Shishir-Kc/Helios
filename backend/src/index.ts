@@ -44,6 +44,12 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 const MAX_TOKENIZER_SIZE = 50 * 1024 * 1024
 
+function parseFormBoolean(value: unknown): boolean | undefined {
+  if (value === 'true' || value === '1') return true
+  if (value === 'false' || value === '0') return false
+  return undefined
+}
+
 function allowedOrigin(origin: string): string {
   if (origin === 'https://helios.shishirkhatri.com.np') return origin
   if (origin === 'https://studio.helios.shishirkhatri.com.np') return origin
@@ -406,7 +412,8 @@ app.delete('/api/helios/families/:slug', adminAuth, async (c) => {
 
 app.get('/api/helios/tokenizers', async (c) => {
   try {
-    return c.json({ tokenizers: await getAllTokenizers(c.env.DB) })
+    const tokenizers = await getAllTokenizers(c.env.DB)
+    return c.json({ tokenizers: tokenizers.map((tokenizer) => ({ ...tokenizer, is_multilangual: Boolean(tokenizer.is_multilangual) })) })
   } catch (err) {
     return c.json({ error: 'Failed to fetch tokenizers' }, 500)
   }
@@ -435,6 +442,9 @@ app.post('/api/helios/tokenizers', adminAuth, async (c) => {
     const slug = typeof body.slug === 'string' ? body.slug.trim() : ''
     const bannerImageUrl = typeof body.banner_image_url === 'string' ? body.banner_image_url.trim() : null
     const githubUrl = typeof body.github_url === 'string' ? body.github_url.trim() : null
+    const rawIsMultilangual = body.is_multilangual
+    const isMultilangual = parseFormBoolean(rawIsMultilangual)
+    if (rawIsMultilangual !== undefined && isMultilangual === undefined) return c.json({ error: 'is_multilangual must be true or false' }, 400)
     if (!name || !slug || !file) return c.json({ error: 'Name, slug, and a tokenizer file are required' }, 400)
     if (!isValidSlug(slug)) return c.json({ error: 'Slug must be lowercase alphanumeric with hyphens only' }, 400)
     if (!file.name.toLowerCase().endsWith('.tokenizer')) return c.json({ error: 'Tokenizer files must use the .tokenizer extension' }, 400)
@@ -445,13 +455,14 @@ app.post('/api/helios/tokenizers', adminAuth, async (c) => {
     const r2Key = `tokenizers/${slug}/${crypto.randomUUID()}-${safeFilename}`
     await putB2Object(c.env, r2Key, await file.arrayBuffer(), file.type || 'application/octet-stream')
     const success = await createTokenizer(c.env.DB, {
-      name, slug, filename: safeFilename, content_type: file.type || 'application/octet-stream', size_bytes: file.size, r2_key: r2Key, banner_image_url: bannerImageUrl || null, github_url: githubUrl || null,
+      name, slug, filename: safeFilename, content_type: file.type || 'application/octet-stream', size_bytes: file.size, r2_key: r2Key, banner_image_url: bannerImageUrl || null, github_url: githubUrl || null, is_multilangual: isMultilangual ?? false,
     })
     if (!success) {
       await deleteB2Object(c.env, r2Key)
       return c.json({ error: 'Failed to save tokenizer metadata' }, 500)
     }
-    return c.json({ tokenizer: await getTokenizerBySlug(c.env.DB, slug) }, 201)
+    const tokenizer = await getTokenizerBySlug(c.env.DB, slug)
+    return c.json({ tokenizer: tokenizer ? { ...tokenizer, is_multilangual: Boolean(tokenizer.is_multilangual) } : null }, 201)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown upload error'
     console.error('Tokenizer upload failed:', message)
@@ -469,6 +480,9 @@ app.put('/api/helios/tokenizers/:slug', adminAuth, async (c) => {
     const name = typeof body.name === 'string' ? body.name.trim() : existing.name
     const bannerImageUrl = typeof body.banner_image_url === 'string' ? body.banner_image_url.trim() : null
     const githubUrl = typeof body.github_url === 'string' ? body.github_url.trim() : null
+    const rawIsMultilangual = body.is_multilangual
+    const isMultilangual = parseFormBoolean(rawIsMultilangual)
+    if (rawIsMultilangual !== undefined && isMultilangual === undefined) return c.json({ error: 'is_multilangual must be true or false' }, 400)
     if (!name) return c.json({ error: 'Name is required' }, 400)
 
     let newKey: string | undefined
@@ -493,13 +507,15 @@ app.put('/api/helios/tokenizers/:slug', adminAuth, async (c) => {
       r2_key: newKey,
       banner_image_url: bannerImageUrl,
       github_url: githubUrl,
+      is_multilangual: isMultilangual,
     })
     if (!success) {
       if (newKey) await deleteB2Object(c.env, newKey)
       return c.json({ error: 'Failed to update tokenizer' }, 500)
     }
     if (newKey && newKey !== existing.r2_key) await deleteB2Object(c.env, existing.r2_key)
-    return c.json({ tokenizer: await getTokenizerBySlug(c.env.DB, slug) })
+    const tokenizer = await getTokenizerBySlug(c.env.DB, slug)
+    return c.json({ tokenizer: tokenizer ? { ...tokenizer, is_multilangual: Boolean(tokenizer.is_multilangual) } : null })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown update error'
     console.error('Tokenizer update failed:', message)

@@ -17,6 +17,7 @@ export default function TokenizersDashboard() {
   const [slug, setSlug] = useState('')
   const [bannerImageUrl, setBannerImageUrl] = useState('')
   const [githubUrl, setGithubUrl] = useState('')
+  const [isMultilangual, setIsMultilangual] = useState(false)
   const [editing, setEditing] = useState(null)
   const [file, setFile] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -51,14 +52,15 @@ export default function TokenizersDashboard() {
     setSaving(true)
     try {
       if (editing) {
-        await updateTokenizer(editing.slug, { name: name.trim(), banner_image_url: bannerImageUrl.trim(), github_url: githubUrl.trim(), file })
+        await updateTokenizer(editing.slug, { name: name.trim(), banner_image_url: bannerImageUrl.trim(), github_url: githubUrl.trim(), is_multilangual: isMultilangual, file })
       } else {
-        await uploadTokenizer({ name: name.trim(), slug: slug.trim(), banner_image_url: bannerImageUrl.trim(), github_url: githubUrl.trim(), file })
+        await uploadTokenizer({ name: name.trim(), slug: slug.trim(), banner_image_url: bannerImageUrl.trim(), github_url: githubUrl.trim(), is_multilangual: isMultilangual, file })
       }
       setName('')
       setSlug('')
       setBannerImageUrl('')
       setGithubUrl('')
+      setIsMultilangual(false)
       setEditing(null)
       setFile(null)
       event.target.reset()
@@ -110,6 +112,13 @@ export default function TokenizersDashboard() {
             <p className="form-help">Optional source code or tokenizer repository link.</p>
           </div>
           <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+            <label htmlFor="tokenizer-multilingual" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input id="tokenizer-multilingual" type="checkbox" checked={isMultilangual} onChange={(event) => setIsMultilangual(event.target.checked)} />
+              Supports multilingual text
+            </label>
+            <p className="form-help">Allow non-English characters in the public tokenizer demo.</p>
+          </div>
+          <div className="form-group" style={{ gridColumn: '1 / -1' }}>
             <label htmlFor="tokenizer-file">Tokenizer file</label>
             <input className="input" id="tokenizer-file" type="file" accept=".tokenizer,application/octet-stream" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
             <p className="form-help">{editing ? 'Optional: select a replacement .tokenizer file.' : <>Select the trained tokenizer file, for example <code>ember.tokenizer</code>.</>}</p>
@@ -118,14 +127,14 @@ export default function TokenizersDashboard() {
         {error && <p className="form-error">{error}</p>}
         {message && <p className="form-success">{message}</p>}
         <button className="btn btn-primary" type="submit" disabled={saving}>{saving ? 'Saving…' : editing ? 'Save changes' : 'Upload tokenizer'}</button>
-        {editing && <button className="btn btn-secondary" type="button" onClick={() => { setEditing(null); setName(''); setSlug(''); setBannerImageUrl(''); setGithubUrl(''); setFile(null); setError('') }}>Cancel</button>}
+        {editing && <button className="btn btn-secondary" type="button" onClick={() => { setEditing(null); setName(''); setSlug(''); setBannerImageUrl(''); setGithubUrl(''); setIsMultilangual(false); setFile(null); setError('') }}>Cancel</button>}
       </form>
 
       {loading ? <div className="empty-state"><p>Loading tokenizers…</p></div> : tokenizers.length === 0 ? (
         <div className="empty-state"><p>No tokenizers uploaded yet.</p></div>
       ) : (
         <table className="papers-table">
-          <thead><tr><th>Name</th><th>File</th><th>Size</th><th>Slug</th><th></th></tr></thead>
+          <thead><tr><th>Name</th><th>File</th><th>Size</th><th>Slug</th><th>Multilingual</th><th></th></tr></thead>
           <tbody>
             {tokenizers.map((tokenizer) => (
               <tr key={tokenizer.slug}>
@@ -133,8 +142,9 @@ export default function TokenizersDashboard() {
                 <td style={{ color: 'var(--color-text-muted)', fontFamily: 'monospace', fontSize: 13 }}>{tokenizer.filename}</td>
                 <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>{formatBytes(tokenizer.size_bytes)}</td>
                 <td style={{ color: 'var(--color-text-muted)', fontFamily: 'monospace', fontSize: 13 }}>{tokenizer.slug}</td>
+                <td style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>{tokenizer.is_multilangual ? 'Yes' : 'No'}</td>
                 <td className="actions">
-                  <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(tokenizer); setName(tokenizer.name); setSlug(tokenizer.slug); setBannerImageUrl(tokenizer.banner_image_url ?? ''); setGithubUrl(tokenizer.github_url ?? ''); setFile(null); setError(''); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Edit</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => { setEditing(tokenizer); setName(tokenizer.name); setSlug(tokenizer.slug); setBannerImageUrl(tokenizer.banner_image_url ?? ''); setGithubUrl(tokenizer.github_url ?? ''); setIsMultilangual(Boolean(tokenizer.is_multilangual)); setFile(null); setError(''); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Edit</button>
                   <a className="btn btn-ghost btn-sm" href={`${import.meta.env.VITE_API_URL ?? 'https://api.helios.shishirkhatri.com.np/api'}/helios/tokenizers/${tokenizer.slug}`}>Download</a>
                   <button className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)' }} onClick={() => handleDelete(tokenizer)}>Delete</button>
                 </td>

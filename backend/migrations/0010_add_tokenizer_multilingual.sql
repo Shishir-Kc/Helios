@@ -1,0 +1,1 @@
+ALTER TABLE tokenizers ADD COLUMN is_multilangual INTEGER NOT NULL DEFAULT 0;

@@ -390,6 +390,7 @@ export interface Tokenizer {
   r2_key: string
   banner_image_url: string | null
   github_url: string | null
+  is_multilangual: number
   created_at: string
   updated_at: string
 }
@@ -403,6 +404,7 @@ export interface CreateTokenizerInput {
   r2_key: string
   banner_image_url?: string | null
   github_url?: string | null
+  is_multilangual?: boolean
 }
 
 export interface UpdateTokenizerInput {
@@ -413,6 +415,7 @@ export interface UpdateTokenizerInput {
   r2_key?: string
   banner_image_url?: string | null
   github_url?: string | null
+  is_multilangual?: boolean
 }
 
 export function getAllTokenizers(db: D1Database): Promise<Tokenizer[]> {
@@ -425,8 +428,8 @@ export function getTokenizerBySlug(db: D1Database, slug: string): Promise<Tokeni
 
 export function createTokenizer(db: D1Database, input: CreateTokenizerInput): Promise<boolean> {
   return db
-    .prepare('INSERT INTO tokenizers (name, slug, filename, content_type, size_bytes, r2_key, banner_image_url, github_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    .bind(input.name, input.slug, input.filename, input.content_type, input.size_bytes, input.r2_key, input.banner_image_url ?? null, input.github_url ?? null)
+    .prepare('INSERT INTO tokenizers (name, slug, filename, content_type, size_bytes, r2_key, banner_image_url, github_url, is_multilangual) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .bind(input.name, input.slug, input.filename, input.content_type, input.size_bytes, input.r2_key, input.banner_image_url ?? null, input.github_url ?? null, Number(input.is_multilangual ?? false))
     .run()
     .then((r) => r.success)
 }
@@ -446,6 +449,7 @@ export function updateTokenizer(db: D1Database, slug: string, input: UpdateToken
   add('r2_key', input.r2_key)
   add('banner_image_url', input.banner_image_url)
   add('github_url', input.github_url)
+  add('is_multilangual', input.is_multilangual === undefined ? undefined : Number(input.is_multilangual))
   if (!sets.length) return Promise.resolve(false)
   sets.push("updated_at = datetime('now')")
   values.push(slug)
